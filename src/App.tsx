@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Activation from "./pages/Activation";
 import Home from "./pages/Home";
-import Player from "./pages/Player";
+import Player from "./pages/player";
 
 type Screen = "activation" | "home" | "player";
 
