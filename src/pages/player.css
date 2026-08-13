@@ -1,0 +1,382 @@
+.player-page {
+  position: relative;
+
+  width: 100%;
+  height: 100vh;
+
+  overflow: hidden;
+
+  background: #000;
+
+  color: #fff;
+
+  font-family:
+    Inter,
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  outline: none;
+}
+
+.player-video {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  background: #000;
+}
+
+.player-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.65),
+      transparent 30%,
+      transparent 60%,
+      rgba(0, 0, 0, 0.8)
+    );
+}
+
+/* Top bar */
+
+.player-topbar {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 100px;
+
+  padding: 0 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+}
+
+.player-channel-info {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+.player-channel-logo {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #1d3157;
+
+  color: #79a0ff;
+
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.player-channel-info strong {
+  display: block;
+
+  font-size: 18px;
+}
+
+.player-channel-info span {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #9ba7b9;
+
+  font-size: 12px;
+}
+
+.player-live {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 7px 11px;
+
+  border-radius: 7px;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.player-live span {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #3ddd91;
+
+  box-shadow:
+    0 0 10px #3ddd91;
+}
+
+/* Channel menu */
+
+.player-channel-menu {
+  position: absolute;
+
+  top: 105px;
+  left: 35px;
+
+  width: 330px;
+
+  padding: 18px;
+
+  box-sizing: border-box;
+
+  border-radius: 15px;
+
+  background: rgba(9, 14, 22, 0.95);
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.1);
+
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.55);
+
+  backdrop-filter: blur(16px);
+}
+
+.menu-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 13px;
+
+  padding: 0 5px 10px;
+
+  border-bottom: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.menu-title small {
+  color: #6d7a8e;
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.menu-channel {
+  width: 100%;
+
+  min-height: 62px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 8px;
+
+  border: 2px solid transparent;
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #ffffff;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.menu-channel:hover,
+.menu-channel-active {
+  background: #17233a;
+
+  border-color: #416fff;
+}
+
+.menu-logo {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #223456;
+
+  color: #80a5ff;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.menu-channel-name {
+  flex: 1;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.menu-playing {
+  color: #42dc91;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+/* Controls */
+
+.player-controls {
+  position: absolute;
+
+  left: 45px;
+  right: 45px;
+  bottom: 30px;
+}
+
+.player-control-row {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.player-control-button {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.15);
+
+  border-radius: 10px;
+
+  background: rgba(8, 12, 18, 0.78);
+
+  color: #fff;
+
+  font-size: 16px;
+
+  cursor: pointer;
+}
+
+.player-control-button:hover,
+.player-control-button:focus {
+  outline: none;
+
+  border-color: #5a82ff;
+
+  background: #172442;
+}
+
+.player-play {
+  width: 58px;
+  height: 58px;
+
+  background: #2864ff;
+
+  border-color: #2864ff;
+
+  font-size: 19px;
+}
+
+.player-volume {
+  height: 48px;
+
+  margin-left: 12px;
+
+  padding: 0 15px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border-radius: 10px;
+
+  background: rgba(8, 12, 18, 0.78);
+}
+
+.player-volume input {
+  width: 100px;
+
+  accent-color: #4e7dff;
+
+  cursor: pointer;
+}
+
+.fullscreen-button {
+  margin-left: auto;
+}
+
+/* Control hints */
+
+.player-control-info {
+  display: flex;
+  align-items: center;
+
+  gap: 22px;
+
+  margin-top: 13px;
+
+  color: #a5afbe;
+
+  font-size: 11px;
+}
+
+@media (max-width: 800px) {
+  .player-topbar {
+    padding: 0 20px;
+  }
+
+  .player-controls {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+  }
+
+  .player-channel-menu {
+    left: 20px;
+    width: calc(100% - 40px);
+  }
+
+  .player-control-info {
+    display: none;
+  }
+}

@@ -1,0 +1,562 @@
+.activation-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      #18243b 0%,
+      #0b101a 42%,
+      #05070b 100%
+    );
+
+  color: #ffffff;
+  font-family:
+    Inter,
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+/* -------------------------------------------------- */
+/* Background                                         */
+/* -------------------------------------------------- */
+
+.activation-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.activation-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.22;
+}
+
+.activation-glow-one {
+  width: 420px;
+  height: 420px;
+
+  top: -180px;
+  left: -120px;
+
+  background: #2864ff;
+}
+
+.activation-glow-two {
+  width: 360px;
+  height: 360px;
+
+  right: -120px;
+  bottom: -140px;
+
+  background: #7048ff;
+}
+
+/* -------------------------------------------------- */
+/* Main Card                                          */
+/* -------------------------------------------------- */
+
+.activation-card {
+  position: relative;
+  z-index: 2;
+
+  width: min(620px, calc(100% - 80px));
+
+  padding: 46px 56px 32px;
+
+  box-sizing: border-box;
+
+  background: rgba(13, 18, 29, 0.94);
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  border-radius: 26px;
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  backdrop-filter: blur(18px);
+}
+
+/* -------------------------------------------------- */
+/* Brand                                              */
+/* -------------------------------------------------- */
+
+.activation-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 13px;
+
+  margin-bottom: 42px;
+}
+
+.activation-logo-mark {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #2864ff,
+    #6b48ff
+  );
+
+  font-size: 24px;
+  font-weight: 900;
+
+  box-shadow:
+    0 10px 30px rgba(40, 100, 255, 0.3);
+}
+
+.activation-logo-text {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+}
+
+.activation-logo-text span {
+  font-weight: 400;
+  opacity: 0.65;
+}
+
+/* -------------------------------------------------- */
+/* Content                                            */
+/* -------------------------------------------------- */
+
+.activation-content {
+  text-align: center;
+}
+
+.activation-icon {
+  width: 62px;
+  height: 62px;
+
+  margin: 0 auto 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(40, 100, 255, 0.12);
+
+  border: 1px solid rgba(70, 120, 255, 0.25);
+
+  color: #6d9aff;
+
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.activation-content h1 {
+  margin: 0;
+
+  font-size: 34px;
+  line-height: 1.2;
+
+  font-weight: 750;
+
+  letter-spacing: -0.6px;
+}
+
+.activation-description {
+  max-width: 470px;
+
+  margin: 15px auto 32px;
+
+  color: #929daf;
+
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* -------------------------------------------------- */
+/* Form                                               */
+/* -------------------------------------------------- */
+
+.activation-form {
+  text-align: left;
+}
+
+.activation-form label {
+  display: block;
+
+  margin-bottom: 9px;
+
+  color: #d7dce5;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.activation-input {
+  width: 100%;
+  height: 62px;
+
+  box-sizing: border-box;
+
+  padding: 0 20px;
+
+  border-radius: 12px;
+
+  border: 2px solid #293345;
+
+  outline: none;
+
+  background: #080c13;
+
+  color: #ffffff;
+
+  font-size: 22px;
+  font-weight: 600;
+
+  text-align: center;
+
+  letter-spacing: 3px;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.activation-input::placeholder {
+  color: #4e596a;
+  letter-spacing: 3px;
+}
+
+.activation-input:focus {
+  border-color: #4f86ff;
+
+  background: #0a101b;
+
+  box-shadow:
+    0 0 0 4px rgba(40, 100, 255, 0.16),
+    0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.activation-input.input-error {
+  border-color: #ff5f68;
+
+  box-shadow:
+    0 0 0 4px rgba(255, 95, 104, 0.12);
+}
+
+.activation-input.input-success {
+  border-color: #39d98a;
+}
+
+.activation-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.activation-input-hint {
+  margin-top: 8px;
+
+  color: #596577;
+
+  font-size: 12px;
+
+  text-align: right;
+}
+
+/* -------------------------------------------------- */
+/* Button                                             */
+/* -------------------------------------------------- */
+
+.activation-button {
+  width: 100%;
+  height: 62px;
+
+  margin-top: 24px;
+
+  border: 0;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #2864ff,
+    #4d52ff
+  );
+
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+.activation-button:hover {
+  filter: brightness(1.08);
+
+  box-shadow:
+    0 12px 30px rgba(40, 100, 255, 0.3);
+}
+
+.activation-button:focus {
+  outline: none;
+
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.2),
+    0 12px 30px rgba(40, 100, 255, 0.3);
+}
+
+.activation-button:active {
+  transform: scale(0.985);
+}
+
+.activation-button:disabled {
+  cursor: not-allowed;
+}
+
+.activation-button.button-loading {
+  background: #26334a;
+}
+
+.activation-button.button-success {
+  background: #16845a;
+}
+
+/* -------------------------------------------------- */
+/* Loading Spinner                                    */
+/* -------------------------------------------------- */
+
+.activation-spinner {
+  width: 19px;
+  height: 19px;
+
+  border-radius: 50%;
+
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+
+  animation: activation-spin 0.8s linear infinite;
+}
+
+@keyframes activation-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* -------------------------------------------------- */
+/* Messages                                           */
+/* -------------------------------------------------- */
+
+.activation-message {
+  margin-top: 18px;
+
+  min-height: 44px;
+
+  padding: 0 15px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  border-radius: 10px;
+
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.message-error {
+  background: rgba(255, 75, 85, 0.1);
+  border: 1px solid rgba(255, 75, 85, 0.2);
+  color: #ff858b;
+}
+
+.message-success {
+  background: rgba(44, 210, 135, 0.1);
+  border: 1px solid rgba(44, 210, 135, 0.2);
+  color: #5ce6a5;
+}
+
+.message-icon {
+  width: 21px;
+  height: 21px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* -------------------------------------------------- */
+/* Remote Help                                        */
+/* -------------------------------------------------- */
+
+.activation-help {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 24px;
+
+  margin-top: 30px;
+
+  color: #657184;
+
+  font-size: 12px;
+}
+
+.help-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.help-key {
+  padding: 4px 7px;
+
+  border: 1px solid #303a4b;
+  border-radius: 5px;
+
+  background: #101621;
+
+  color: #aeb8c7;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* -------------------------------------------------- */
+/* Footer                                             */
+/* -------------------------------------------------- */
+
+.activation-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 36px;
+
+  color: #4f5a6a;
+
+  font-size: 11px;
+
+  letter-spacing: 0.5px;
+}
+
+.footer-separator {
+  opacity: 0.5;
+}
+
+/* -------------------------------------------------- */
+/* 720p / Smaller TV                                 */
+/* -------------------------------------------------- */
+
+@media (max-height: 720px) {
+  .activation-card {
+    padding-top: 30px;
+    padding-bottom: 24px;
+  }
+
+  .activation-brand {
+    margin-bottom: 25px;
+  }
+
+  .activation-icon {
+    width: 50px;
+    height: 50px;
+
+    margin-bottom: 14px;
+  }
+
+  .activation-content h1 {
+    font-size: 28px;
+  }
+
+  .activation-description {
+    margin-bottom: 22px;
+  }
+
+  .activation-help {
+    margin-top: 20px;
+  }
+
+  .activation-footer {
+    margin-top: 22px;
+  }
+}
+
+/* -------------------------------------------------- */
+/* Mobile                                             */
+/* -------------------------------------------------- */
+
+@media (max-width: 600px) {
+  .activation-page {
+    padding: 20px;
+  }
+
+  .activation-card {
+    width: 100%;
+    padding: 32px 24px 25px;
+
+    border-radius: 20px;
+  }
+
+  .activation-content h1 {
+    font-size: 27px;
+  }
+
+  .activation-description {
+    font-size: 14px;
+  }
+
+  .activation-input {
+    height: 56px;
+    font-size: 19px;
+  }
+
+  .activation-button {
+    height: 56px;
+  }
+
+  .activation-help {
+    gap: 12px;
+  }
+}
