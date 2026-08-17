@@ -17,7 +17,13 @@
     sans-serif;
 
   outline: none;
+
+  user-select: none;
 }
+
+/* =========================================================
+   VIDEO
+   ========================================================= */
 
 .player-video {
   position: absolute;
@@ -42,14 +48,16 @@
   background:
     linear-gradient(
       to bottom,
-      rgba(0, 0, 0, 0.65),
+      rgba(0, 0, 0, 0.68),
       transparent 30%,
       transparent 60%,
-      rgba(0, 0, 0, 0.8)
+      rgba(0, 0, 0, 0.82)
     );
 }
 
-/* Top bar */
+/* =========================================================
+   TOP BAR
+   ========================================================= */
 
 .player-topbar {
   position: absolute;
@@ -67,6 +75,10 @@
   justify-content: space-between;
 
   box-sizing: border-box;
+
+  z-index: 5;
+
+  pointer-events: none;
 }
 
 .player-channel-info {
@@ -138,7 +150,9 @@
     0 0 10px #3ddd91;
 }
 
-/* Channel menu */
+/* =========================================================
+   CHANNEL MENU
+   ========================================================= */
 
 .player-channel-menu {
   position: absolute;
@@ -146,7 +160,8 @@
   top: 105px;
   left: 35px;
 
-  width: 330px;
+  width: 360px;
+  max-height: calc(100vh - 150px);
 
   padding: 18px;
 
@@ -154,15 +169,19 @@
 
   border-radius: 15px;
 
-  background: rgba(9, 14, 22, 0.95);
+  background: rgba(9, 14, 22, 0.96);
 
   border: 1px solid
-    rgba(255, 255, 255, 0.1);
+    rgba(255, 255, 255, 0.12);
 
   box-shadow:
     0 25px 60px rgba(0, 0, 0, 0.55);
 
   backdrop-filter: blur(16px);
+
+  overflow: hidden;
+
+  z-index: 10;
 }
 
 .menu-title {
@@ -182,7 +201,9 @@
 }
 
 .menu-title small {
-  color: #6d7a8e;
+  color: #8d9ab0;
+
+  font-size: 10px;
 }
 
 .menu-list {
@@ -190,6 +211,10 @@
   flex-direction: column;
 
   gap: 6px;
+
+  max-height: calc(100vh - 225px);
+
+  overflow: hidden;
 }
 
 .menu-channel {
@@ -205,22 +230,33 @@
   padding: 8px;
 
   border: 2px solid transparent;
+
   border-radius: 10px;
 
   background: transparent;
 
-  color: #ffffff;
+  color: #fff;
 
   text-align: left;
 
   cursor: pointer;
+
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.12s ease;
 }
 
-.menu-channel:hover,
-.menu-channel-active {
+.menu-channel:hover {
   background: #17233a;
+}
+
+.menu-channel-active {
+  background: #172d55;
 
   border-color: #416fff;
+
+  transform: scale(1.015);
 }
 
 .menu-logo {
@@ -246,8 +282,16 @@
 .menu-channel-name {
   flex: 1;
 
+  min-width: 0;
+
   font-size: 13px;
   font-weight: 600;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 }
 
 .menu-playing {
@@ -257,14 +301,19 @@
   font-weight: 800;
 }
 
-/* Controls */
+/* =========================================================
+   CONTROLS
+   ========================================================= */
 
 .player-controls {
   position: absolute;
 
   left: 45px;
   right: 45px;
+
   bottom: 30px;
+
+  z-index: 6;
 }
 
 .player-control-row {
@@ -287,13 +336,18 @@
 
   border-radius: 10px;
 
-  background: rgba(8, 12, 18, 0.78);
+  background: rgba(8, 12, 18, 0.82);
 
   color: #fff;
 
   font-size: 16px;
 
   cursor: pointer;
+
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.12s ease;
 }
 
 .player-control-button:hover,
@@ -303,6 +357,8 @@
   border-color: #5a82ff;
 
   background: #172442;
+
+  transform: scale(1.04);
 }
 
 .player-play {
@@ -330,7 +386,7 @@
 
   border-radius: 10px;
 
-  background: rgba(8, 12, 18, 0.78);
+  background: rgba(8, 12, 18, 0.82);
 }
 
 .player-volume input {
@@ -345,7 +401,9 @@
   margin-left: auto;
 }
 
-/* Control hints */
+/* =========================================================
+   CONTROL HINTS
+   ========================================================= */
 
 .player-control-info {
   display: flex;
@@ -360,23 +418,58 @@
   font-size: 11px;
 }
 
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.player-error {
+  padding: 40px;
+
+  color: #fff;
+
+  font-size: 24px;
+}
+
+/* =========================================================
+   SMALL SCREENS
+   ========================================================= */
+
 @media (max-width: 800px) {
   .player-topbar {
     padding: 0 20px;
+
+    height: 80px;
+  }
+
+  .player-channel-logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  .player-channel-info strong {
+    font-size: 15px;
   }
 
   .player-controls {
     left: 20px;
     right: 20px;
+
     bottom: 20px;
   }
 
   .player-channel-menu {
     left: 20px;
+
     width: calc(100% - 40px);
+
+    top: 85px;
   }
 
   .player-control-info {
+    display: none;
+  }
+
+  .player-volume {
     display: none;
   }
 }

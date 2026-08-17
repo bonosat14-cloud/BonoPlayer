@@ -1,4 +1,4 @@
-import Home from "./Home";
+
 import { useEffect, useRef, useState } from "react";
 import "./Activation.css";
 

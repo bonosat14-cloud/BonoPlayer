@@ -1,159 +1,295 @@
 import { useEffect, useRef, useState } from "react";
 import "./Home.css";
 import { channels } from "../data/channels";
-import type { Channel } from "../data/channels";
 
 type HomeProps = {
   onPlayChannel: (channelIndex: number) => void;
+
+  // سنربط هذه الشاشات لاحقًا من App.tsx
+  onOpenLiveTV?: () => void;
+  onOpenMovies?: () => void;
+  onOpenSeries?: () => void;
+  onOpenSettings?: () => void;
 };
 
-type Category = {
-  id: string;
-  name: string;
+type MainItem = {
+  id: "live" | "movies" | "series";
+  title: string;
+  subtitle: string;
   icon: string;
 };
 
-const categories: Category[] = [
-  { id: "all", name: "All Channels", icon: "▦" },
-  { id: "news", name: "News", icon: "◉" },
-  { id: "sports", name: "Sports", icon: "◆" },
-  { id: "movies", name: "Movies", icon: "▶" },
-  { id: "kids", name: "Kids", icon: "★" },
+const mainItems: MainItem[] = [
+  {
+    id: "live",
+    title: "LIVE TV",
+    subtitle: "Watch live channels",
+    icon: "▣",
+  },
+  {
+    id: "movies",
+    title: "MOVIES",
+    subtitle: "Explore movies",
+    icon: "▶",
+  },
+  {
+    id: "series",
+    title: "SERIES",
+    subtitle: "Explore series",
+    icon: "▤",
+  },
 ];
 
-function Home({ onPlayChannel }: HomeProps) {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [focusedChannel, setFocusedChannel] = useState(0);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
-
+function Home({
+  onPlayChannel,
+  onOpenLiveTV,
+  onOpenMovies,
+  onOpenSeries,
+  onOpenSettings,
+}: HomeProps) {
   const homeRef = useRef<HTMLElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
+
+  const [focusArea, setFocusArea] = useState<
+    "recent" | "main"
+  >("main");
+
+  const [focusedMain, setFocusedMain] = useState(0);
+  const [focusedRecent, setFocusedRecent] = useState(0);
+  const [currentTime, setCurrentTime] = useState(
+    new Date()
+  );
+
+  /*
+   * =========================================================
+   * DEVICE INFORMATION
+   * Temporary demo values.
+   * Later they will come from the real activation/device system.
+   * =========================================================
+   */
+
+  const deviceId = "326498";
+  const devicePin = "457961";
+
+  /*
+   * =========================================================
+   * RECENTLY WATCHED
+   * =========================================================
+   */
+
+  const recentlyWatched = channels.slice(0, 4);
+
+  /*
+   * =========================================================
+   * INITIAL FOCUS
+   * =========================================================
+   */
 
   useEffect(() => {
     homeRef.current?.focus();
   }, []);
 
-  const filteredChannels = channels.filter((channel) => {
-    const categoryMatch =
-      selectedCategory === "all" ||
-      channel.category.toLowerCase() === selectedCategory;
-
-    const searchMatch =
-      searchText.trim() === "" ||
-      channel.name
-        .toLowerCase()
-        .includes(searchText.toLowerCase());
-
-    return categoryMatch && searchMatch;
-  });
+  /*
+   * =========================================================
+   * CLOCK
+   * =========================================================
+   */
 
   useEffect(() => {
-    setFocusedChannel(0);
-  }, [selectedCategory, searchText]);
+    const timer = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30_000);
 
-  useEffect(() => {
-    if (searchOpen) {
-      searchRef.current?.focus();
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  /*
+   * =========================================================
+   * OPEN MAIN SECTION
+   * =========================================================
+   */
+
+  const openMainItem = (item: MainItem) => {
+    if (item.id === "live") {
+      onOpenLiveTV?.();
+      return;
     }
-  }, [searchOpen]);
 
-  const handleChannelSelect = (channel: Channel) => {
-    const globalIndex = channels.findIndex(
-      (item) => item.id === channel.id
-    );
+    if (item.id === "movies") {
+      onOpenMovies?.();
+      return;
+    }
 
-    if (globalIndex !== -1) {
-      onPlayChannel(globalIndex);
+    if (item.id === "series") {
+      onOpenSeries?.();
     }
   };
+
+  /*
+   * =========================================================
+   * REMOTE NAVIGATION
+   * D-PAD / OK
+   * =========================================================
+   */
 
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
-    if (searchOpen) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setSearchOpen(false);
-        setSearchText("");
-        homeRef.current?.focus();
-      }
+    const key = event.key;
+    const keyCode = event.keyCode;
 
-      return;
+    const isLeft =
+      key === "ArrowLeft" ||
+      key === "Left" ||
+      keyCode === 37;
+
+    const isRight =
+      key === "ArrowRight" ||
+      key === "Right" ||
+      keyCode === 39;
+
+    const isUp =
+      key === "ArrowUp" ||
+      key === "Up" ||
+      keyCode === 38;
+
+    const isDown =
+      key === "ArrowDown" ||
+      key === "Down" ||
+      keyCode === 40;
+
+    const isEnter =
+      key === "Enter" ||
+      key === "OK" ||
+      keyCode === 13;
+/*
+ * ================= LEFT =================
+ */
+
+if (isLeft) {
+  event.preventDefault();
+
+  if (focusArea === "main") {
+    setFocusedMain((current) =>
+      Math.max(0, current - 1)
+    );
+  }
+
+  if (focusArea === "recent") {
+    setFocusedRecent((current) =>
+      Math.max(0, current - 1)
+    );
+  }
+
+  return;
+}
+
+/*
+ * ================= RIGHT =================
+ */
+
+if (isRight) {
+  event.preventDefault();
+
+  if (focusArea === "main") {
+    setFocusedMain((current) =>
+      Math.min(
+        mainItems.length - 1,
+        current + 1
+      )
+    );
+  }
+
+  if (focusArea === "recent") {
+    setFocusedRecent((current) =>
+      Math.min(
+        recentlyWatched.length - 1,
+        current + 1
+      )
+    );
+  }
+
+  return;
+}
+
+/*
+ * ================= UP =================
+ */
+
+if (isUp) {
+  event.preventDefault();
+
+  if (
+    focusArea === "main" &&
+    recentlyWatched.length > 0
+  ) {
+    setFocusArea("recent");
+  }
+
+  return;
+}
+
+/*
+ * ================= DOWN =================
+ */
+
+if (isDown) {
+  event.preventDefault();
+
+  if (focusArea === "recent") {
+    setFocusArea("main");
+  }
+
+  return;
+}
+
+/*
+ * ================= ENTER / OK =================
+ */
+
+if (isEnter) {
+  event.preventDefault();
+
+  if (focusArea === "recent") {
+    const selectedRecent =
+      recentlyWatched[focusedRecent];
+
+    if (selectedRecent) {
+      const channelIndex = channels.findIndex(
+        (channel) =>
+          channel.id === selectedRecent.id
+      );
+
+      if (channelIndex !== -1) {
+        onPlayChannel(channelIndex);
+      }
     }
 
-    switch (event.key) {
-      case "ArrowLeft":
-        event.preventDefault();
+    return;
+  }
 
-        if (focusedChannel > 0) {
-          setFocusedChannel((current) => current - 1);
-        }
+  if (focusArea === "main") {
+    const selectedItem =
+      mainItems[focusedMain];
 
-        break;
+    if (selectedItem) {
+      openMainItem(selectedItem);
+    }
+  }
 
-      case "ArrowRight":
-        event.preventDefault();
+  return;
+}
+    /*
+     * ================= BACK =================
+     */
 
-        if (
-          focusedChannel <
-          filteredChannels.length - 1
-        ) {
-          setFocusedChannel((current) => current + 1);
-        }
-
-        break;
-
-      case "ArrowUp":
-        event.preventDefault();
-
-        if (focusedChannel >= 4) {
-          setFocusedChannel(
-            (current) => current - 4
-          );
-        }
-
-        break;
-
-      case "ArrowDown":
-        event.preventDefault();
-
-        if (
-          focusedChannel + 4 <
-          filteredChannels.length
-        ) {
-          setFocusedChannel(
-            (current) => current + 4
-          );
-        }
-
-        break;
-
-      case "Enter": {
-        event.preventDefault();
-
-        const channel =
-          filteredChannels[focusedChannel];
-
-        if (channel) {
-          handleChannelSelect(channel);
-        }
-
-        break;
-      }
-
-      case "s":
-      case "S":
-        event.preventDefault();
-        setSearchOpen(true);
-        break;
-
-      case "Escape":
-        event.preventDefault();
-        break;
-
-      default:
-        break;
+    if (
+      key === "Escape" ||
+      key === "Esc" ||
+      key === "Backspace"
+    ) {
+      event.preventDefault();
     }
   };
 
@@ -164,183 +300,229 @@ function Home({ onPlayChannel }: HomeProps) {
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
+      {/* =====================================================
+          BACKGROUND DECORATION
+      ===================================================== */}
+
+      <div className="home-background-glow glow-left" />
+      <div className="home-background-glow glow-right" />
+
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <header className="home-header">
         <div className="home-brand">
-          <div className="home-logo">B</div>
-
-          <div className="home-brand-name">
-            BONO<span>PLAYER</span>
-          </div>
+          <span className="home-brand-name">
+            BONO
+          </span>
         </div>
 
-        <div className="home-actions">
+        <div className="home-top-info">
+          <div className="home-clock">
+            {currentTime.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+
           <button
-            className="home-action-button"
-            onClick={() => setSearchOpen(true)}
+            className="home-top-button"
+            type="button"
             aria-label="Search"
           >
-            🔍
+            ⌕
           </button>
 
-          <div className="home-profile">
-            <div className="profile-avatar">B</div>
-
-            <div className="profile-text">
-              <strong>Bono Player</strong>
-              <span>Active device</span>
-            </div>
-          </div>
+          <button
+            className="home-top-button"
+            type="button"
+            aria-label="Settings"
+            onClick={() => onOpenSettings?.()}
+          >
+            ⚙
+          </button>
         </div>
       </header>
 
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
+
       <section className="home-content">
-        <div className="home-welcome">
-          <div>
-            <p className="home-eyebrow">
-              WELCOME BACK
-            </p>
+        {/* ===================================================
+            RECENTLY WATCHED
+        =================================================== */}
 
-            <h1>Watch your channels</h1>
+        <section className="home-recent-section">
+          <div className="home-section-title">
+            <div>
+              <span>CONTINUE WATCHING</span>
+              <h2>Recently Watched</h2>
+            </div>
 
-            <p>
-              Select a channel to start watching.
-            </p>
-          </div>
-        </div>
-
-        <section className="category-section">
-          <div className="section-heading">
-            <h2>Categories</h2>
-          </div>
-
-          <div className="category-list">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                className={`category-card ${
-                  selectedCategory === category.id
-                    ? "category-selected"
-                    : ""
-                }`}
-                onClick={() => {
-                  setSelectedCategory(category.id);
-                  setFocusedChannel(0);
-                }}
-              >
-                <span className="category-icon">
-                  {category.icon}
-                </span>
-
-                <span>{category.name}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="channels-section">
-          <div className="section-heading">
-            <h2>
-              {selectedCategory === "all"
-                ? "All Channels"
-                : categories.find(
-                    (category) =>
-                      category.id ===
-                      selectedCategory
-                  )?.name}
-            </h2>
-
-            <span className="channel-count">
-              {filteredChannels.length} channels
+            <span className="home-section-count">
+              {recentlyWatched.length}
             </span>
           </div>
 
-          <div className="channel-grid">
-            {filteredChannels.map(
+          <div className="recent-row">
+            {recentlyWatched.map(
               (channel, index) => (
                 <button
                   key={channel.id}
-                  className={`channel-card ${
-                    focusedChannel === index
-                      ? "channel-focused"
+                  type="button"
+                  className={`recent-item ${
+                    focusArea === "recent" &&
+                    focusedRecent === index  
+                      ? "recent-item-focused"
                       : ""
                   }`}
-                  onClick={() =>
-                    handleChannelSelect(channel)
-                  }
-                  onMouseEnter={() =>
-                    setFocusedChannel(index)
-                  }
+                  onClick={() => {
+                    const globalIndex =
+                      channels.findIndex(
+                        (item) =>
+                          item.id === channel.id
+                      );
+
+                    if (globalIndex !== -1) {
+                      onPlayChannel(globalIndex);
+                    }
+                  }}
                 >
-                  <div className="channel-logo">
+                  <div className="recent-item-logo">
                     {channel.logo}
                   </div>
 
-                  <div className="channel-info">
-                    <strong>
-                      {channel.name}
-                    </strong>
+                  <div className="recent-item-overlay">
+                    <strong>{channel.name}</strong>
 
                     <span>
-                      {channel.category.toUpperCase()}
+                      {channel.category}
                     </span>
                   </div>
 
-                  <div className="channel-live">
-                    LIVE
+                  <div className="recent-item-play">
+                    ▶
                   </div>
                 </button>
               )
             )}
           </div>
+        </section>
 
-          {filteredChannels.length === 0 && (
-            <div className="no-channels">
-              No channels found
+        {/* ===================================================
+            MAIN NAVIGATION
+        =================================================== */}
+
+        <section className="home-main-section">
+          <div className="home-section-title">
+            <div>
+              <span>YOUR ENTERTAINMENT</span>
+              <h2>Explore Bono</h2>
             </div>
-          )}
+          </div>
+
+          <div className="main-card-grid">
+            {mainItems.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`main-card main-card-${item.id} ${
+                  focusArea === "main" &&
+                  focusedMain === index
+                    ? "main-card-focused"
+                    : ""
+                }`}
+                onMouseEnter={() => {
+                  setFocusedMain(index);
+                  setFocusArea("main");
+                }}
+                onClick={() =>
+                  openMainItem(item)
+                }
+              >
+                <div className="main-card-content">
+                  <div className="main-card-icon">
+                    {item.icon}
+                  </div>
+
+                  <div className="main-card-copy">
+                    <span>{item.subtitle}</span>
+
+                    <strong>{item.title}</strong>
+                  </div>
+                </div>
+
+                <span className="main-card-arrow">
+                  ›
+                </span>
+              </button>
+            ))}
+          </div>
         </section>
       </section>
 
-      <footer className="home-footer">
-        <span>↑ ↓ Navigate</span>
-        <span>ENTER Select</span>
-        <span>S Search</span>
-        <span>ESC Back</span>
+      {/* =====================================================
+          DEVICE INFO
+      ===================================================== */}
 
-        <span className="home-version">
-          BonoPlayer
-        </span>
-      </footer>
+      <section className="device-info-bar">
+        <div className="device-info-left">
+          <div className="device-info-item">
+            <span>DEVICE ID</span>
 
-      {searchOpen && (
-        <div className="search-overlay">
-          <div className="search-box">
-            <h2>Search channels</h2>
+            <strong>{deviceId}</strong>
+          </div>
 
-            <input
-              ref={searchRef}
-              type="text"
-              value={searchText}
-              placeholder="Type channel name..."
-              onChange={(event) =>
-                setSearchText(event.target.value)
-              }
-              onKeyDown={(event) => {
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  setSearchOpen(false);
-                  setSearchText("");
-                  homeRef.current?.focus();
-                }
-              }}
-            />
+          <div className="device-info-separator" />
 
-            <p>
-              Press ESC to close
-            </p>
+          <div className="device-info-item">
+            <span>DEVICE PIN</span>
+
+            <strong>{devicePin}</strong>
           </div>
         </div>
-      )}
+
+        <div className="device-info-right">
+          <div className="device-status">
+            <span className="device-status-dot" />
+
+            <div>
+              <span>STATUS</span>
+              <strong>Active</strong>
+            </div>
+          </div>
+
+          <span className="home-version">
+            BONO • v0.1
+          </span>
+        </div>
+      </section>
+
+      {/* =====================================================
+          REMOTE HELP
+      ===================================================== */}
+
+      <footer className="home-footer">
+        <div>
+          <kbd>↑</kbd>
+          <kbd>↓</kbd>
+          <kbd>←</kbd>
+          <kbd>→</kbd>
+          <span>Navigate</span>
+        </div>
+
+        <div>
+          <kbd>OK</kbd>
+          <span>Select</span>
+        </div>
+
+        <div>
+          <kbd>BACK</kbd>
+          <span>Back</span>
+        </div>
+      </footer>
     </main>
   );
 }
