@@ -76,7 +76,7 @@ function Home({
    * =========================================================
    */
 
-  const recentlyWatched = channels.slice(0, 4);
+  const recentlyWatched: typeof channels = [];
 
   /*
    * =========================================================
@@ -419,7 +419,6 @@ if (isEnter) {
           <div className="home-section-title">
             <div>
               <span>YOUR ENTERTAINMENT</span>
-              <h2>Explore Bono</h2>
             </div>
           </div>
 
@@ -500,29 +499,6 @@ if (isEnter) {
         </div>
       </section>
 
-      {/* =====================================================
-          REMOTE HELP
-      ===================================================== */}
-
-      <footer className="home-footer">
-        <div>
-          <kbd>↑</kbd>
-          <kbd>↓</kbd>
-          <kbd>←</kbd>
-          <kbd>→</kbd>
-          <span>Navigate</span>
-        </div>
-
-        <div>
-          <kbd>OK</kbd>
-          <span>Select</span>
-        </div>
-
-        <div>
-          <kbd>BACK</kbd>
-          <span>Back</span>
-        </div>
-      </footer>
     </main>
   );
 }

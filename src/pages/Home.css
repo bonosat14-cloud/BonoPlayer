@@ -943,166 +943,197 @@
 
 /* =========================================================
    GOOGLE TV / ANDROID TV LANDSCAPE
-   Fit complete Home inside one screen
+   FULL SCREEN HOME
    ========================================================= */
 
 @media (min-width: 700px) and (orientation: landscape) {
 
   .home-page {
+    width: 100vw;
     height: 100vh;
-    min-height: 0;
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
     overflow: hidden;
   }
 
-  /* HEADER */
+  /* ================= HEADER ================= */
 
   .home-header {
-    height: 58px;
-    padding: 0 34px;
+    height: 72px;
+    flex-shrink: 0;
+
+    padding: 0 42px;
   }
 
   .home-brand-name {
-    font-size: 25px;
+    font-size: 28px;
     letter-spacing: 4px;
   }
 
   .home-clock {
-    min-width: 76px;
-    font-size: 15px;
-  }
-
-  .home-top-button {
-    width: 40px;
-    height: 36px;
-    font-size: 18px;
-  }
-
-  /* CONTENT */
-
-  .home-content {
-    padding: 12px 34px 8px;
-  }
-
-  .home-section-title {
-    margin-bottom: 7px;
-  }
-
-  .home-section-title > div {
-    gap: 2px;
-  }
-
-  .home-section-title span {
-    font-size: 7px;
-  }
-
-  .home-section-title h2 {
+    min-width: 82px;
     font-size: 16px;
   }
 
-  /* RECENT */
+  .home-top-button {
+    width: 44px;
+    height: 40px;
+    font-size: 19px;
+  }
 
-  .home-recent-section {
+  /* ================= CONTENT ================= */
+
+  .home-content {
+    flex: 1;
+
+    width: 100%;
+    max-width: none;
+
+    padding: 22px 42px 18px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: space-evenly;
+
+    min-height: 0;
+  }
+
+  .home-section-title {
     margin-bottom: 10px;
   }
 
-  .recent-row {
-    gap: 10px;
+  .home-section-title > div {
+    gap: 3px;
   }
 
-  .recent-item {
-    min-height: 80px;
-    height: 80px;
-    padding: 9px;
-    border-radius: 9px;
-  }
-
-  .recent-item-logo {
-    width: 36px;
-    height: 36px;
-    left: 9px;
-    top: 9px;
-    font-size: 13px;
-  }
-
-  .recent-item-play {
-    width: 27px;
-    height: 27px;
-    right: 9px;
-    top: 9px;
-    font-size: 10px;
-  }
-
-  .recent-item-overlay strong {
-    font-size: 11px;
-  }
-
-  .recent-item-overlay span {
+  .home-section-title span {
     font-size: 8px;
   }
 
-  /* MAIN CARDS */
-
-  .home-main-section {
-    margin-bottom: 8px;
+  .home-section-title h2 {
+    font-size: 18px;
   }
 
-  .main-card-grid {
-    gap: 12px;
+  /* ================= RECENT ================= */
+
+  .home-recent-section {
+    margin-bottom: 20px;
   }
 
-  .main-card {
-    min-height: 108px;
-    height: 108px;
-    padding: 15px;
+  .recent-row {
+    gap: 14px;
+  }
+
+  .recent-item {
+    height: clamp(105px, 16vh, 155px);
+    min-height: 105px;
+
+    padding: 12px;
+
     border-radius: 11px;
   }
 
-  .main-card-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 19px;
-    border-radius: 10px;
+  .recent-item-logo {
+    width: 44px;
+    height: 44px;
+
+    left: 12px;
+    top: 12px;
+
+    font-size: 14px;
   }
 
-  .main-card-content {
-    gap: 12px;
+  .recent-item-play {
+    width: 32px;
+    height: 32px;
+
+    right: 12px;
+    top: 12px;
+
+    font-size: 11px;
   }
 
-  .main-card-copy span {
+  .recent-item-overlay strong {
+    font-size: 13px;
+  }
+
+  .recent-item-overlay span {
     font-size: 9px;
   }
 
+  /* ================= MAIN CARDS ================= */
+
+  .home-main-section {
+    margin-bottom: 0;
+  }
+
+  .main-card-grid {
+    gap: 16px;
+  }
+
+  .main-card {
+    height: clamp(145px, 23vh, 220px);
+    min-height: 145px;
+
+    padding: 22px;
+
+    border-radius: 14px;
+  }
+
+  .main-card-icon {
+    width: 52px;
+    height: 52px;
+
+    font-size: 23px;
+
+    border-radius: 12px;
+  }
+
+  .main-card-content {
+    gap: 16px;
+  }
+
+  .main-card-copy span {
+    font-size: 10px;
+  }
+
   .main-card-copy strong {
-    font-size: 19px;
+    font-size: 24px;
   }
 
   .main-card-arrow {
-    font-size: 28px;
+    font-size: 34px;
   }
 
-  /* DEVICE INFO */
+  /* ================= DEVICE INFO ================= */
 
   .device-info-bar {
-    min-height: 54px;
-    height: 54px;
+    min-height: 64px;
+    height: 64px;
 
-    margin: 0 34px;
+    flex-shrink: 0;
 
-    padding: 0 18px;
+    margin: 0 42px 18px;
 
-    border-radius: 9px;
+    padding: 0 20px;
+
+    border-radius: 10px;
   }
 
   .device-info-left {
-    gap: 17px;
+    gap: 20px;
   }
 
   .device-info-right {
-    gap: 18px;
+    gap: 22px;
   }
 
   .device-info-item {
-    gap: 2px;
+    gap: 3px;
   }
 
   .device-info-item span,
@@ -1111,35 +1142,15 @@
   }
 
   .device-info-item strong {
-    font-size: 16px;
+    font-size: 17px;
     letter-spacing: 2.5px;
   }
 
   .device-info-separator {
-    height: 28px;
+    height: 30px;
   }
 
   .device-status strong {
-    font-size: 10px;
-  }
-
-  /* FOOTER */
-
-  .home-footer {
-    min-height: 24px;
-    height: 24px;
-
-    padding: 0 34px;
-
-    gap: 14px;
-
-    font-size: 7px;
-  }
-
-  .home-footer kbd {
-    min-width: 16px;
-    height: 16px;
-
-    font-size: 7px;
+    font-size: 11px;
   }
 }

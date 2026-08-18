@@ -151,7 +151,21 @@ int previewHeight =
                 previewPlayer
                         .getVLCVout()
                         .attachViews();
+                previewSurface.post(() -> {
+    if (previewPlayer == null) {
+        return;
+    }
 
+    previewPlayer
+            .getVLCVout()
+            .setWindowSize(
+                    previewWidth,
+                    previewHeight
+            );
+
+    previewPlayer.setAspectRatio(null);
+    previewPlayer.setScale(0);
+});
                 Media media =
                         new Media(
                                 previewLibVLC,
@@ -281,12 +295,25 @@ int previewHeight =
         playFullscreen(call);
     }
        
-    @PluginMethod
-    public void exitApp(PluginCall call) {
-        getActivity().runOnUiThread(() -> {
-            call.resolve();
-            getActivity().finishAndRemoveTask();
-        });
-    }
+   @PluginMethod
+public void exitApp(PluginCall call) {
+    getActivity().runOnUiThread(() -> {
+        stopPreviewInternal();
+
+        call.resolve();
+
+        getActivity().finishAndRemoveTask();
+    });
+}
+
+/*
+ * Stop all native playback
+ */
+public void stopAllPlayback() {
+    getActivity().runOnUiThread(() -> {
+        stopPreviewInternal();
+    });
+}
+
 }
 

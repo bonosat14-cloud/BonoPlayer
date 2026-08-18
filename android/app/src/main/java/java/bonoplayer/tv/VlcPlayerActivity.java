@@ -106,7 +106,7 @@ public class VlcPlayerActivity extends AppCompatActivity {
         ArrayList<String> options =
                 new ArrayList<>();
 
-        options.add("--network-caching=1000");
+        options.add("--network-caching=800");
 
         libVLC =
                 new LibVLC(
@@ -161,21 +161,22 @@ public class VlcPlayerActivity extends AppCompatActivity {
          * MEDIA
          */
         Media media =
-                new Media(
-                        libVLC,
-                        Uri.parse(streamUrl)
-                );
-
-        media.setHWDecoderEnabled(
-                true,
-                false
+        new Media(
+                libVLC,
+                Uri.parse(streamUrl)
         );
 
-        mediaPlayer.setMedia(media);
+media.setHWDecoderEnabled(true, false);
 
-        media.release();
+media.addOption(":network-caching=800");
+media.addOption(":clock-jitter=0");
+media.addOption(":clock-synchro=0");
 
-        mediaPlayer.play();
+mediaPlayer.setMedia(media);
+
+media.release();
+
+mediaPlayer.play();
     }
 
     @Override

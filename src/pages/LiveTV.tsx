@@ -5,7 +5,6 @@ import {
   useState,
 } from "react";
 
-import { channels as demoChannels } from "../data/channels";
 import type { ParsedChannel } from "../services/m3uParser";
 import { getLiveChannels } from "../services/xtreamService";
 
@@ -60,7 +59,7 @@ function LiveTV({
     useState<FocusArea>("categories");
 
 
-    useEffect(() => {
+  useEffect(() => {
   const element =
     categoryRefs.current[focusedCategory];
 
@@ -74,6 +73,12 @@ function LiveTV({
   });
 }, [focusedCategory]);
 
+useEffect(() => {
+  return () => {
+    void stopNativePreview();
+  };
+}, []);
+
   /*
    * =========================================================
    * CHANNEL SOURCE
@@ -81,17 +86,7 @@ function LiveTV({
    */
 
   const channels: LiveChannel[] = useMemo(() => {
-    if (playlistChannels.length > 0) {
-      return playlistChannels;
-    }
-
-    return demoChannels.map((channel) => ({
-      id: String(channel.id),
-      name: channel.name,
-      category: channel.category,
-      logo: channel.logo,
-      streamUrl: channel.streamUrl,
-    }));
+    return playlistChannels;
   }, [playlistChannels]);
 
   const usingRealPlaylist = playlistChannels.length > 0;
@@ -542,7 +537,10 @@ if (back) {
     return;
   }
 
-  onBack();
+  void stopNativePreview().finally(() => {
+    onBack();
+  });
+
   return;
 }
 };
