@@ -7,13 +7,17 @@ import Home from "./pages/Home";
 import LiveTV from "./pages/LiveTV";
 import Player from "./pages/player";
 
+import Movies from "./pages/Movies";
+
 import { exitNativeApp } from "./services/nativePlayer";
+
 
 type Screen =
   | "activation"
   | "home"
   | "liveTV"
-  | "player";
+  | "movies"
+  | "player"; 
 
 function App() {
   useEffect(() => {
@@ -57,6 +61,9 @@ function App() {
     setScreen("home");
     return;
   }
+  if (screen === "movies") {
+  return;
+}
 
   if (screen === "home") {
     void exitNativeApp();
@@ -109,6 +116,13 @@ function App() {
       />
     );
   }
+            if (screen === "movies") {
+  return (
+    <Movies
+      onBack={() => setScreen("home")}
+    />
+  );
+} 
 
   return (
     <Home
@@ -118,6 +132,7 @@ function App() {
         setScreen("player");
       }}
       onOpenLiveTV={() => setScreen("liveTV")}
+      onOpenMovies={() => setScreen("movies")}
     />
   );
 }

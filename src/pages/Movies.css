@@ -1,0 +1,448 @@
+.movies-page {
+  width: 100vw;
+  height: 100vh;
+
+  overflow: hidden;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #07142f,
+      #111b49 55%,
+      #261343
+    );
+
+  outline: none;
+}
+
+.movies-header {
+  height: 72px;
+
+  padding: 0 42px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 28px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.06);
+}
+
+.movies-brand {
+  font-size: 28px;
+  font-weight: 900;
+
+  letter-spacing: 4px;
+}
+
+.movies-header h1 {
+  margin: 0;
+
+  font-size: 22px;
+}
+
+.movies-layout {
+  height: calc(100vh - 72px);
+
+  display: grid;
+
+  grid-template-columns:
+    220px 1fr;
+
+  gap: 18px;
+
+  padding: 20px 32px 28px;
+
+  box-sizing: border-box;
+}
+
+.movies-categories {
+  min-height: 0;
+
+  padding: 14px;
+
+  border-radius: 12px;
+  
+  overflow-y: auto;
+overflow-x: hidden;
+
+scrollbar-width: none;
+
+  background:
+    rgba(5, 12, 36, 0.52);
+}
+.movies-categories::-webkit-scrollbar {
+  display: none;
+}
+
+.movies-column-title {
+  margin-bottom: 12px;
+
+  color:
+    rgba(255, 255, 255, 0.48);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1.5px;
+}
+
+.movies-category {
+  height: 44px;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+
+  box-sizing: border-box;
+
+  border:
+    2px solid transparent;
+
+  border-radius: 8px;
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+}
+
+.movies-category.is-focused {
+  color: #ffffff;
+
+  border-color: #ffffff;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(36, 107, 255, 0.75),
+      rgba(101, 56, 200, 0.52)
+    );
+}
+
+.movies-grid {
+  min-width: 0;
+  min-height: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 16px;
+
+  overflow: hidden;
+}
+
+.movie-card {
+  min-width: 0;
+
+  padding: 10px;
+
+  border:
+    2px solid transparent;
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+}
+
+.movie-card.is-focused {
+  border-color: #ffffff;
+
+  transform: scale(1.025);
+
+  background:
+    rgba(255, 255, 255, 0.10);
+}
+
+.movie-poster {
+  aspect-ratio: 2 / 3;
+
+  margin-bottom: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3159be,
+      #552493
+    );
+
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.movie-card strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 13px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movie-card > span {
+  color:
+    rgba(255, 255, 255, 0.48);
+
+  font-size: 9px;
+}
+.movie-poster-image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  border-radius: inherit;
+}
+.movies-search-button {
+  margin-left: auto;
+
+  width: 210px;
+  height: 48px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  box-sizing: border-box;
+
+  border: 2px solid transparent;
+  border-radius: 11px;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  color: #ffffff;
+}
+
+.movies-search-button.is-focused {
+  border-color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(48, 124, 255, 0.55),
+      rgba(105, 61, 210, 0.48)
+    );
+
+  box-shadow:
+    0 0 0 4px
+      rgba(255, 255, 255, 0.08);
+}
+
+.movies-search-symbol {
+  font-size: 24px;
+}
+
+.movies-search-copy {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.movies-search-copy span {
+  color:
+    rgba(255, 255, 255, 0.48);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 1.2px;
+}
+
+.movies-search-copy strong {
+  font-size: 11px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   MOVIE DETAILS
+   ========================================================= */
+
+.movie-details-overlay {
+  position: absolute;
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 55px;
+
+  box-sizing: border-box;
+
+  background:
+    rgba(3, 8, 26, 0.88);
+
+  backdrop-filter: blur(14px);
+}
+
+.movie-details-card {
+  width: min(920px, 90vw);
+  height: min(520px, 76vh);
+
+  display: grid;
+
+  grid-template-columns:
+    280px 1fr;
+
+  gap: 34px;
+
+  padding: 26px;
+
+  box-sizing: border-box;
+
+  border:
+    1px solid
+      rgba(255, 255, 255, 0.10);
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(18, 38, 88, 0.98),
+      rgba(34, 20, 73, 0.98)
+    );
+
+  box-shadow:
+    0 30px 80px
+      rgba(0, 0, 0, 0.48);
+}
+
+.movie-details-poster {
+  height: 100%;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: #111b3d;
+}
+
+.movie-details-poster img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.movie-details-content {
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+}
+
+.movie-details-label {
+  color: #5bb7ff;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 2px;
+}
+
+.movie-details-content h2 {
+  margin: 10px 0 14px;
+
+  font-size: 32px;
+}
+
+.movie-details-meta {
+  display: flex;
+
+  gap: 10px;
+
+  margin-bottom: 18px;
+}
+
+.movie-details-meta span {
+  padding: 6px 10px;
+
+  border-radius: 7px;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  color:
+    rgba(255, 255, 255, 0.72);
+
+  font-size: 10px;
+}
+
+.movie-details-content p {
+  max-width: 520px;
+
+  margin: 0 0 24px;
+
+  color:
+    rgba(255, 255, 255, 0.58);
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.movie-details-play {
+  width: 160px;
+  height: 48px;
+
+  border:
+    2px solid #ffffff;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1976ff,
+      #6841df
+    );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.movie-details-hint {
+  margin-top: 15px;
+
+  color:
+    rgba(255, 255, 255, 0.35);
+
+  font-size: 9px;
+}

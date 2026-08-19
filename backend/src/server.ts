@@ -280,6 +280,214 @@ app.get(
     return res.redirect(302, streamUrl);
   }
 );
+app.get(
+  "/api/device/:deviceId/vod/categories",
+  async (req, res) => {
+    const { deviceId } = req.params;
+
+    const playlist = playlists.find(
+      (item) =>
+        item.deviceId === deviceId &&
+        item.type === "xtream"
+    );
+
+    if (
+      !playlist ||
+      !playlist.serverUrl ||
+      !playlist.username ||
+      !playlist.password
+    ) {
+      return res.status(404).json({
+        ok: false,
+        message:
+          "Xtream playlist not found for this device.",
+      });
+    }
+
+    try {
+      const url =
+        `${playlist.serverUrl}/player_api.php` +
+        `?username=${encodeURIComponent(
+          playlist.username
+        )}` +
+        `&password=${encodeURIComponent(
+          playlist.password
+        )}` +
+        `&action=get_vod_categories`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        return res.status(502).json({
+          ok: false,
+          message:
+            `Xtream server returned HTTP ${response.status}.`,
+        });
+      }
+
+      const categories =
+        await response.json();
+
+      return res.json({
+        ok: true,
+        deviceId,
+        playlistName: playlist.name,
+        categories,
+      });
+    } catch (error) {
+      console.error(
+        "Xtream VOD categories request failed:",
+        error
+      );
+
+      return res.status(500).json({
+        ok: false,
+        message:
+          "Unable to load movie categories.",
+      });
+    }
+  }
+);
+app.get(
+  "/api/device/:deviceId/vod/streams",
+  async (req, res) => {
+    const { deviceId } = req.params;
+    const { categoryId } = req.query;
+
+    const playlist = playlists.find(
+      (item) =>
+        item.deviceId === deviceId &&
+        item.type === "xtream"
+    );
+
+    if (
+      !playlist ||
+      !playlist.serverUrl ||
+      !playlist.username ||
+      !playlist.password
+    ) {
+      return res.status(404).json({
+        ok: false,
+        message:
+          "Xtream playlist not found for this device.",
+      });
+    }
+
+    try {
+      let url =
+        `${playlist.serverUrl}/player_api.php` +
+        `?username=${encodeURIComponent(
+          playlist.username
+        )}` +
+        `&password=${encodeURIComponent(
+          playlist.password
+        )}` +
+        `&action=get_vod_streams`;
+
+      if (
+        typeof categoryId === "string" &&
+        categoryId
+      ) {
+        url +=
+          `&category_id=${encodeURIComponent(
+            categoryId
+          )}`;
+      }
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        return res.status(502).json({
+          ok: false,
+          message:
+            `Xtream server returned HTTP ${response.status}.`,
+        });
+      }
+
+      const streams =
+        await response.json();
+
+      return res.json({
+        ok: true,
+        deviceId,
+        playlistName: playlist.name,
+        streams,
+      });
+    } catch (error) {
+      console.error(
+        "Xtream VOD streams request failed:",
+        error
+      );
+
+      return res.status(500).json({
+        ok: false,
+        message:
+          "Unable to load movies.",
+      });
+    }
+  }
+);
+app.get(
+  "/api/device/:deviceId/vod/play/:streamId/:extension",
+  async (req, res) => {
+    const {
+      deviceId,
+      streamId,
+      extension,
+    } = req.params;
+
+    const playlist = playlists.find(
+      (item) =>
+        item.deviceId === deviceId &&
+        item.type === "xtream"
+    );
+
+    if (
+      !playlist ||
+      !playlist.serverUrl ||
+      !playlist.username ||
+      !playlist.password
+    ) {
+      return res.status(404).json({
+        ok: false,
+        message:
+          "Xtream playlist not found.",
+      });
+    }
+
+    const safeExtension =
+      extension.replace(
+        /[^a-zA-Z0-9]/g,
+        ""
+      );
+
+    if (!safeExtension) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          "Invalid movie extension.",
+      });
+    }
+
+    const streamUrl =
+      `${playlist.serverUrl}/movie/` +
+      `${encodeURIComponent(
+        playlist.username
+      )}/` +
+      `${encodeURIComponent(
+        playlist.password
+      )}/` +
+      `${encodeURIComponent(
+        streamId
+      )}.` +
+      safeExtension;
+
+    return res.redirect(
+      302,
+      streamUrl
+    );
+  }
+);
 app.listen(PORT, () => {
   console.log(`BONO Backend running on port ${PORT}`);
 });
