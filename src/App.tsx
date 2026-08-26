@@ -1,31 +1,54 @@
-import { useEffect, useState } from "react";
-import { getDevicePlaylists } from "./services/deviceApi";
-import type { ParsedChannel } from "./services/m3uParser";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  getDevicePlaylists,
+} from "./services/deviceApi";
+
+import type {
+  ParsedChannel,
+} from "./services/m3uParser";
 
 import Activation from "./pages/Activation";
 import Home from "./pages/Home";
 import LiveTV from "./pages/LiveTV";
 import Player from "./pages/player";
-
 import Movies from "./pages/Movies";
+import Series from "./pages/Series";
 
-import { exitNativeApp } from "./services/nativePlayer";
-
+import {
+  exitNativeApp,
+} from "./services/nativePlayer";
 
 type Screen =
   | "activation"
   | "home"
   | "liveTV"
   | "movies"
-  | "player"; 
+  | "series"
+  | "player";
 
 function App() {
+  /*
+   * =========================================================
+   * BACKEND TEST
+   * =========================================================
+   */
+
   useEffect(() => {
     const testBackend = async () => {
       try {
-        const result = await getDevicePlaylists("326498");
+        const result =
+          await getDevicePlaylists(
+            "326498"
+          );
 
-        console.log("BONO Backend test:", result);
+        console.log(
+          "BONO Backend test:",
+          result
+        );
       } catch (error) {
         console.error(
           "BONO Backend connection failed:",
@@ -37,102 +60,290 @@ function App() {
     void testBackend();
   }, []);
 
+  /*
+   * =========================================================
+   * ACTIVATION
+   * =========================================================
+   */
+
   const isActivated =
-    localStorage.getItem("bonoplayer_activation_code") !== null;
+    localStorage.getItem(
+      "bonoplayer_activation_code"
+    ) !== null;
 
-  const [screen, setScreen] = useState<Screen>(
-    isActivated ? "home" : "activation"
+  /*
+   * =========================================================
+   * SCREEN
+   * =========================================================
+   */
+
+  const [
+    screen,
+    setScreen,
+  ] = useState<Screen>(
+    isActivated
+      ? "home"
+      : "activation"
   );
 
-  const [selectedChannel, setSelectedChannel] = useState(0);
+  /*
+   * =========================================================
+   * PLAYER STATE
+   * =========================================================
+   */
 
-  const [playlistChannel, setPlaylistChannel] =
-    useState<ParsedChannel | null>(null);
+  const [
+    selectedChannel,
+    setSelectedChannel,
+  ] = useState(0);
+
+  const [
+    playlistChannel,
+    setPlaylistChannel,
+  ] =
+    useState<ParsedChannel | null>(
+      null
+    );
+
+  /*
+   * =========================================================
+   * ANDROID BACK
+   * =========================================================
+   */
+
   useEffect(() => {
-   
     const handleBonoBack = () => {
-  if (screen === "player") {
-    setPlaylistChannel(null);
-    setScreen("liveTV");
-    return;
-  }
+      /*
+       * PLAYER -> LIVE TV
+       */
+      if (screen === "player") {
+        setPlaylistChannel(null);
 
-  if (screen === "liveTV") {
-    setScreen("home");
-    return;
-  }
-  if (screen === "movies") {
-  return;
-}
+        setScreen("liveTV");
 
-  if (screen === "home") {
-    void exitNativeApp();
-    return;
-  }
-};    
+        return;
+      }
 
-  window.addEventListener(
-    "bonoBack",
-    handleBonoBack
-  );
+      /*
+       * LIVE TV -> HOME
+       */
+      if (screen === "liveTV") {
+        setScreen("home");
 
-  return () => {
-    window.removeEventListener(
+        return;
+      }
+
+      /*
+       * MOVIES
+       *
+       * Movies.tsx manages:
+       *
+       * Full Screen
+       * -> Details
+       * -> Movies
+       * -> Categories
+       * -> Home
+       */
+      if (screen === "movies") {
+        return;
+      }
+
+      /*
+       * SERIES
+       *
+       * Series.tsx will manage:
+       *
+       * VLC
+       * -> Episodes
+       * -> Details
+       * -> Series Grid
+       * -> Categories
+       * -> Home
+       */
+      if (screen === "series") {
+        return;
+      }
+
+      /*
+       * HOME -> EXIT APP
+       */
+      if (screen === "home") {
+        void exitNativeApp();
+
+        return;
+      }
+    };
+
+    window.addEventListener(
       "bonoBack",
       handleBonoBack
     );
-  };
-}, [screen]);
-  if (screen === "activation") {
+
+    return () => {
+      window.removeEventListener(
+        "bonoBack",
+        handleBonoBack
+      );
+    };
+  }, [screen]);
+
+  /*
+   * =========================================================
+   * ACTIVATION SCREEN
+   * =========================================================
+   */
+
+  if (
+    screen === "activation"
+  ) {
     return <Activation />;
   }
 
-  if (screen === "player") {
+  /*
+   * =========================================================
+   * PLAYER
+   * =========================================================
+   */
+
+  if (
+    screen === "player"
+  ) {
     return (
       <Player
-        channelIndex={selectedChannel}
-        playlistChannel={playlistChannel}
+        channelIndex={
+          selectedChannel
+        }
+        playlistChannel={
+          playlistChannel
+        }
         onBack={() => {
-          setPlaylistChannel(null);
-          setScreen("liveTV");
+          setPlaylistChannel(
+            null
+          );
+
+          setScreen(
+            "liveTV"
+          );
         }}
       />
     );
   }
 
-  if (screen === "liveTV") {
+  /*
+   * =========================================================
+   * LIVE TV
+   * =========================================================
+   */
+
+  if (
+    screen === "liveTV"
+  ) {
     return (
       <LiveTV
-        onBack={() => setScreen("home")}
-        onPlayChannel={(channelIndex) => {
-          setPlaylistChannel(null);
-          setSelectedChannel(channelIndex);
-          setScreen("player");
+        onBack={() =>
+          setScreen("home")
+        }
+        onPlayChannel={(
+          channelIndex
+        ) => {
+          setPlaylistChannel(
+            null
+          );
+
+          setSelectedChannel(
+            channelIndex
+          );
+
+          setScreen(
+            "player"
+          );
         }}
-        onPlayPlaylistChannel={(channel) => {
-          setPlaylistChannel(channel);
-          setScreen("player");
+        onPlayPlaylistChannel={(
+          channel
+        ) => {
+          setPlaylistChannel(
+            channel
+          );
+
+          setScreen(
+            "player"
+          );
         }}
       />
     );
   }
-            if (screen === "movies") {
-  return (
-    <Movies
-      onBack={() => setScreen("home")}
-    />
-  );
-} 
+
+  /*
+   * =========================================================
+   * MOVIES
+   * =========================================================
+   */
+
+  if (
+    screen === "movies"
+  ) {
+    return (
+      <Movies
+        onBack={() =>
+          setScreen("home")
+        }
+      />
+    );
+  }
+
+  /*
+   * =========================================================
+   * SERIES
+   * =========================================================
+   */
+
+  if (
+    screen === "series"
+  ) {
+    return (
+      <Series
+        onBack={() =>
+          setScreen("home")
+        }
+      />
+    );
+  }
+
+  /*
+   * =========================================================
+   * HOME
+   * =========================================================
+   */
 
   return (
     <Home
-      onPlayChannel={(channelIndex) => {
-        setPlaylistChannel(null);
-        setSelectedChannel(channelIndex);
-        setScreen("player");
+      onPlayChannel={(
+        channelIndex
+      ) => {
+        setPlaylistChannel(
+          null
+        );
+
+        setSelectedChannel(
+          channelIndex
+        );
+
+        setScreen(
+          "player"
+        );
       }}
-      onOpenLiveTV={() => setScreen("liveTV")}
-      onOpenMovies={() => setScreen("movies")}
+
+      onOpenLiveTV={() =>
+        setScreen("liveTV")
+      }
+
+      onOpenMovies={() =>
+        setScreen("movies")
+      }
+
+      onOpenSeries={() =>
+        setScreen("series")
+      }
     />
   );
 }

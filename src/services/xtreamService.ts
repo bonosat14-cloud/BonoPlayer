@@ -1,14 +1,29 @@
-import { CapacitorHttp } from "@capacitor/core";
-import type { ParsedChannel } from "./m3uParser";
+import {
+  CapacitorHttp,
+} from "@capacitor/core";
 
-const API_BASE_URL = "http://192.168.1.6:4000";
+import {
+  API_BASE_URL,
+} from "../config/api";
 
-const DB_NAME = "bonoplayer-cache";
+import type {
+  ParsedChannel,
+} from "./m3uParser";
+
+/*
+ * نستخدم Cache جديدًا حتى لا نرجع
+ * إلى القنوات القديمة التي لا تحتوي epgId.
+ */
+const DB_NAME =
+  "bonoplayer-live-cache-v2";
+
 const DB_VERSION = 1;
-const STORE_NAME = "live-channels";
+
+const STORE_NAME =
+  "live-channels";
 
 const CACHE_MAX_AGE_MS =
-  6 * 60 * 60 * 1000; // 6 hours
+  6 * 60 * 60 * 1000;
 
 type XtreamCategory = {
   category_id: string;
@@ -17,31 +32,49 @@ type XtreamCategory = {
 
 type XtreamStream = {
   num: number;
+
   name: string;
+
   stream_type: string;
+
   stream_id: number;
+
   stream_icon: string;
-  epg_channel_id: string | null;
+
+  epg_channel_id:
+    | string
+    | null;
+
   category_id: string;
+
   category_ids?: number[];
 };
 
 type CategoriesResponse = {
   ok: boolean;
-  categories?: XtreamCategory[];
+
+  categories?:
+    XtreamCategory[];
+
   message?: string;
 };
 
 type StreamsResponse = {
   ok: boolean;
-  streams?: XtreamStream[];
+
+  streams?:
+    XtreamStream[];
+
   message?: string;
 };
 
 type LiveChannelsCache = {
   deviceId: string;
+
   updatedAt: number;
-  channels: ParsedChannel[];
+
+  channels:
+    ParsedChannel[];
 };
 
 /*
@@ -50,121 +83,168 @@ type LiveChannelsCache = {
  * =========================================================
  */
 
-function openCacheDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(
-      DB_NAME,
-      DB_VERSION
-    );
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
-
-      if (
-        !db.objectStoreNames.contains(
-          STORE_NAME
-        )
-      ) {
-        db.createObjectStore(
-          STORE_NAME,
-          {
-            keyPath: "deviceId",
-          }
+function openCacheDb():
+Promise<IDBDatabase> {
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      const request =
+        indexedDB.open(
+          DB_NAME,
+          DB_VERSION
         );
-      }
-    };
 
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
+      request.onupgradeneeded =
+        () => {
+          const db =
+            request.result;
 
-    request.onerror = () => {
-      reject(request.error);
-    };
-  });
+          if (
+            !db.objectStoreNames
+              .contains(
+                STORE_NAME
+              )
+          ) {
+            db.createObjectStore(
+              STORE_NAME,
+              {
+                keyPath:
+                  "deviceId",
+              }
+            );
+          }
+        };
+
+      request.onsuccess =
+        () => {
+          resolve(
+            request.result
+          );
+        };
+
+      request.onerror =
+        () => {
+          reject(
+            request.error
+          );
+        };
+    }
+  );
 }
 
 async function getCachedLiveChannels(
   deviceId: string
-): Promise<LiveChannelsCache | null> {
-  const db = await openCacheDb();
+): Promise<
+  LiveChannelsCache | null
+> {
+  const db =
+    await openCacheDb();
 
-  return new Promise((resolve, reject) => {
-    const transaction =
-      db.transaction(
-        STORE_NAME,
-        "readonly"
-      );
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      const transaction =
+        db.transaction(
+          STORE_NAME,
+          "readonly"
+        );
 
-    const store =
-      transaction.objectStore(
-        STORE_NAME
-      );
+      const store =
+        transaction.objectStore(
+          STORE_NAME
+        );
 
-    const request =
-      store.get(deviceId);
+      const request =
+        store.get(
+          deviceId
+        );
 
-    request.onsuccess = () => {
-      resolve(
-        (request.result as
-          LiveChannelsCache | undefined) ??
-          null
-      );
-    };
+      request.onsuccess =
+        () => {
+          resolve(
+            (
+              request.result as
+                | LiveChannelsCache
+                | undefined
+            ) ?? null
+          );
+        };
 
-    request.onerror = () => {
-      reject(request.error);
-    };
-  });
+      request.onerror =
+        () => {
+          reject(
+            request.error
+          );
+        };
+    }
+  );
 }
 
 async function saveCachedLiveChannels(
   cache: LiveChannelsCache
 ): Promise<void> {
-  const db = await openCacheDb();
+  const db =
+    await openCacheDb();
 
-  return new Promise((resolve, reject) => {
-    const transaction =
-      db.transaction(
-        STORE_NAME,
-        "readwrite"
-      );
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      const transaction =
+        db.transaction(
+          STORE_NAME,
+          "readwrite"
+        );
 
-    const store =
-      transaction.objectStore(
-        STORE_NAME
-      );
+      const store =
+        transaction.objectStore(
+          STORE_NAME
+        );
 
-    store.put(cache);
+      store.put(cache);
 
-    transaction.oncomplete = () => {
-      resolve();
-    };
+      transaction.oncomplete =
+        () => {
+          resolve();
+        };
 
-    transaction.onerror = () => {
-      reject(transaction.error);
-    };
-  });
+      transaction.onerror =
+        () => {
+          reject(
+            transaction.error
+          );
+        };
+    }
+  );
 }
 
 /*
  * =========================================================
- * NETWORK
+ * NETWORK - CATEGORIES
  * =========================================================
  */
 
 export async function getLiveCategories(
   deviceId: string
-): Promise<XtreamCategory[]> {
+): Promise<
+  XtreamCategory[]
+> {
   const response =
     await CapacitorHttp.get({
       url:
-        `${API_BASE_URL}/api/device/${deviceId}` +
+        `${API_BASE_URL}` +
+        `/api/device/${deviceId}` +
         `/live/categories`,
     });
 
   const data =
-    response.data as CategoriesResponse;
+    response.data as
+      CategoriesResponse;
 
   if (
     !data.ok ||
@@ -179,22 +259,37 @@ export async function getLiveCategories(
   return data.categories;
 }
 
+/*
+ * =========================================================
+ * NETWORK - CHANNELS
+ * =========================================================
+ */
+
 async function fetchLiveChannelsFromNetwork(
   deviceId: string
-): Promise<ParsedChannel[]> {
-  const [categories, response] =
+): Promise<
+  ParsedChannel[]
+> {
+  const [
+    categories,
+    response,
+  ] =
     await Promise.all([
-      getLiveCategories(deviceId),
+      getLiveCategories(
+        deviceId
+      ),
 
       CapacitorHttp.get({
         url:
-          `${API_BASE_URL}/api/device/${deviceId}` +
+          `${API_BASE_URL}` +
+          `/api/device/${deviceId}` +
           `/live/streams`,
       }),
     ]);
 
   const data =
-    response.data as StreamsResponse;
+    response.data as
+      StreamsResponse;
 
   if (
     !data.ok ||
@@ -208,32 +303,54 @@ async function fetchLiveChannelsFromNetwork(
 
   const categoryMap =
     new Map(
-      categories.map((category) => [
-        category.category_id,
-        category.category_name,
-      ])
+      categories.map(
+        (category) => [
+          category.category_id,
+          category.category_name,
+        ]
+      )
     );
 
   return data.streams.map(
-    (stream) => ({
-      id: String(
-        stream.stream_id
-      ),
+    (stream) => {
+      const epgId =
+        stream.epg_channel_id
+          ?.trim() ||
+        undefined;
 
-      name: stream.name,
+      return {
+        /*
+         * stream_id يبقى ID التشغيل.
+         */
+        id:
+          String(
+            stream.stream_id
+          ),
 
-      category:
-        categoryMap.get(
-          stream.category_id
-        ) ?? "Other",
+        name:
+          stream.name,
 
-      logo:
-        stream.stream_icon || "",
+        category:
+          categoryMap.get(
+            stream.category_id
+          ) ?? "Other",
 
-      streamUrl:
-        `${API_BASE_URL}/api/device/${deviceId}` +
-        `/live/play/${stream.stream_id}`,
-    })
+        logo:
+          stream.stream_icon ||
+          "",
+
+        streamUrl:
+          `${API_BASE_URL}` +
+          `/api/device/${deviceId}` +
+          `/live/play/` +
+          `${stream.stream_id}`,
+
+        /*
+         * هذا هو مفتاح XMLTV الحقيقي.
+         */
+        epgId,
+      };
+    }
   );
 }
 
@@ -246,7 +363,9 @@ async function fetchLiveChannelsFromNetwork(
 
 export async function getLiveChannels(
   deviceId: string
-): Promise<ParsedChannel[]> {
+): Promise<
+  ParsedChannel[]
+> {
   let cached:
     | LiveChannelsCache
     | null = null;
@@ -264,18 +383,22 @@ export async function getLiveChannels(
   }
 
   /*
-   * إذا عندنا Cache
-   * نرجعه فورًا
+   * CACHE EXISTS
    */
-  if (cached?.channels.length) {
+  if (
+    cached?.channels.length
+  ) {
     const age =
       Date.now() -
       cached.updatedAt;
 
     /*
-     * إذا مازال حديث
+     * FRESH CACHE
      */
-    if (age < CACHE_MAX_AGE_MS) {
+    if (
+      age <
+      CACHE_MAX_AGE_MS
+    ) {
       console.log(
         `BONO cache hit: ${cached.channels.length} channels`
       );
@@ -284,8 +407,7 @@ export async function getLiveChannels(
     }
 
     /*
-     * Cache قديم:
-     * نرجعه فورًا ونحدّثه بالخلفية
+     * STALE CACHE
      */
     console.log(
       "BONO stale cache returned, refreshing..."
@@ -294,30 +416,40 @@ export async function getLiveChannels(
     void fetchLiveChannelsFromNetwork(
       deviceId
     )
-      .then(async (channels) => {
-        await saveCachedLiveChannels({
-          deviceId,
-          updatedAt: Date.now(),
-          channels,
-        });
+      .then(
+        async (
+          channels
+        ) => {
+          await saveCachedLiveChannels(
+            {
+              deviceId,
 
-        console.log(
-          `BONO cache refreshed: ${channels.length} channels`
-        );
-      })
-      .catch((error) => {
-        console.error(
-          "BONO background refresh failed:",
-          error
-        );
-      });
+              updatedAt:
+                Date.now(),
+
+              channels,
+            }
+          );
+
+          console.log(
+            `BONO cache refreshed: ${channels.length} channels`
+          );
+        }
+      )
+      .catch(
+        (error) => {
+          console.error(
+            "BONO background refresh failed:",
+            error
+          );
+        }
+      );
 
     return cached.channels;
   }
 
   /*
-   * أول مرة فقط:
-   * لا يوجد Cache
+   * CACHE MISS
    */
   console.log(
     "BONO cache miss, loading network..."
@@ -329,11 +461,16 @@ export async function getLiveChannels(
     );
 
   try {
-    await saveCachedLiveChannels({
-      deviceId,
-      updatedAt: Date.now(),
-      channels,
-    });
+    await saveCachedLiveChannels(
+      {
+        deviceId,
+
+        updatedAt:
+          Date.now(),
+
+        channels,
+      }
+    );
 
     console.log(
       `BONO cache saved: ${channels.length} channels`

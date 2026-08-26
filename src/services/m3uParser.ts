@@ -4,6 +4,11 @@ export type ParsedChannel = {
   category: string;
   logo: string;
   streamUrl: string;
+
+  /*
+   * XMLTV / EPG channel identifier
+   */
+  epgId?: string;
 };
 
 function readAttribute(
@@ -11,10 +16,16 @@ function readAttribute(
   attribute: string
 ) {
   const match = line.match(
-    new RegExp(`${attribute}="([^"]*)"`, "i")
+    new RegExp(
+      `${attribute}="([^"]*)"`,
+      "i"
+    )
   );
 
-  return match?.[1]?.trim() ?? "";
+  return (
+    match?.[1]?.trim() ??
+    ""
+  );
 }
 
 export function parseM3U(
@@ -22,15 +33,23 @@ export function parseM3U(
 ): ParsedChannel[] {
   const lines = content
     .split(/\r?\n/)
-    .map((line) => line.trim())
+    .map(
+      (line) =>
+        line.trim()
+    )
     .filter(Boolean);
 
-  const result: ParsedChannel[] = [];
+  const result:
+    ParsedChannel[] = [];
 
   let currentInfo = "";
 
   for (const line of lines) {
-    if (line.startsWith("#EXTINF")) {
+    if (
+      line.startsWith(
+        "#EXTINF"
+      )
+    ) {
       currentInfo = line;
       continue;
     }
@@ -40,12 +59,16 @@ export function parseM3U(
       !line.startsWith("#")
     ) {
       const commaIndex =
-        currentInfo.lastIndexOf(",");
+        currentInfo.lastIndexOf(
+          ","
+        );
 
       const name =
         commaIndex !== -1
           ? currentInfo
-              .slice(commaIndex + 1)
+              .slice(
+                commaIndex + 1
+              )
               .trim()
           : "Unknown Channel";
 
@@ -70,11 +93,20 @@ export function parseM3U(
       result.push({
         id:
           tvgId ||
-          `channel-${result.length + 1}`,
+          `channel-${
+            result.length + 1
+          }`,
+
         name,
+
         category,
+
         logo,
+
         streamUrl: line,
+
+        epgId:
+          tvgId || undefined,
       });
 
       currentInfo = "";

@@ -1,11 +1,16 @@
-import { registerPlugin } from "@capacitor/core";
+import {
+  registerPlugin,
+} from "@capacitor/core";
 
 type PreviewOptions = {
   streamUrl: string;
+
   x: number;
   y: number;
+
   width: number;
   height: number;
+
   scale?: number;
 };
 
@@ -18,13 +23,39 @@ type NativePlayerPlugin = {
     options: PreviewOptions
   ): Promise<void>;
 
+  /*
+   * Movies / Series
+   */
   playFullscreen(options: {
     streamUrl: string;
   }): Promise<void>;
 
-  stopPreview(): Promise<void>;
+  /*
+   * Live TV
+   *
+   * نفس Preview Player
+   * بدون إعادة تشغيل VLC.
+   */
+  enterLiveFullscreen():
+    Promise<void>;
 
-  exitApp(): Promise<void>;
+  exitLiveFullscreen():
+    Promise<void>;
+
+  stopPreview():
+    Promise<void>;
+
+  /*
+   * YouTube Trailer
+   *
+   * مستقلة تمامًا عن VLC و Live TV.
+   */
+  openYouTube(options: {
+    value: string;
+  }): Promise<void>;
+
+  exitApp():
+    Promise<void>;
 };
 
 const NativePlayer =
@@ -43,8 +74,16 @@ export async function playNative(
 export async function playNativePreview(
   options: PreviewOptions
 ): Promise<void> {
-  await NativePlayer.playPreview(options);
+  await NativePlayer.playPreview(
+    options
+  );
 }
+
+/*
+ * =========================================================
+ * MOVIES / SERIES
+ * =========================================================
+ */
 
 export async function playNativeFullscreen(
   streamUrl: string
@@ -54,10 +93,60 @@ export async function playNativeFullscreen(
   });
 }
 
-export async function stopNativePreview(): Promise<void> {
+/*
+ * =========================================================
+ * LIVE TV
+ * =========================================================
+ */
+
+export async function enterNativeLiveFullscreen():
+Promise<void> {
+  await NativePlayer
+    .enterLiveFullscreen();
+}
+
+export async function exitNativeLiveFullscreen():
+Promise<void> {
+  await NativePlayer
+    .exitLiveFullscreen();
+}
+
+export async function stopNativePreview():
+Promise<void> {
   await NativePlayer.stopPreview();
 }
 
-export async function exitNativeApp(): Promise<void> {
+/*
+ * =========================================================
+ * YOUTUBE TRAILER
+ * =========================================================
+ */
+
+export async function openNativeYouTube(
+  value: string
+): Promise<void> {
+  const trailerValue =
+    value.trim();
+
+  if (!trailerValue) {
+    throw new Error(
+      "YouTube trailer value is empty"
+    );
+  }
+
+  await NativePlayer.openYouTube({
+    value:
+      trailerValue,
+  });
+}
+
+/*
+ * =========================================================
+ * EXIT APP
+ * =========================================================
+ */
+
+export async function exitNativeApp():
+Promise<void> {
   await NativePlayer.exitApp();
 }

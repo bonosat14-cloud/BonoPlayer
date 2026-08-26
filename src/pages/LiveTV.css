@@ -54,10 +54,12 @@
 
   box-sizing: border-box;
 
-  background: rgba(5, 14, 43, 0.38);
+  background:
+    rgba(5, 14, 43, 0.38);
 
   border-bottom:
-    1px solid rgba(255, 255, 255, 0.08);
+    1px solid
+      rgba(255, 255, 255, 0.08);
 }
 
 .live-tv-brand {
@@ -77,6 +79,8 @@
   justify-self: end;
 
   display: flex;
+  align-items: center;
+
   gap: 10px;
 }
 
@@ -89,7 +93,8 @@
   justify-content: center;
 
   border:
-    1px solid rgba(255, 255, 255, 0.09);
+    1px solid
+      rgba(255, 255, 255, 0.09);
 
   border-radius: 8px;
 
@@ -104,7 +109,70 @@
 }
 
 /* =========================================================
-   MAIN 3-COLUMN LAYOUT
+   SEARCH TRIGGER
+   ========================================================= */
+
+.live-tv-header-actions
+.live-tv-search-trigger {
+  width: auto;
+  min-width: 112px;
+  max-width: 220px;
+
+  padding: 0 11px;
+
+  justify-content: flex-start;
+
+  gap: 7px;
+
+  border:
+    2px solid transparent;
+
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease,
+    transform 0.14s ease;
+}
+
+.live-tv-search-trigger.is-focused {
+  border-color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(42, 133, 255, 0.72),
+      rgba(105, 62, 210, 0.62)
+    );
+
+  box-shadow:
+    0 0 0 3px
+      rgba(255, 255, 255, 0.08);
+
+  transform:
+    scale(1.025);
+}
+
+.live-tv-search-trigger-icon {
+  flex-shrink: 0;
+
+  font-size: 17px;
+}
+
+.live-tv-search-trigger-copy {
+  min-width: 0;
+
+  color:
+    rgba(255, 255, 255, 0.88);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   MAIN LAYOUT
    ========================================================= */
 
 .live-tv-layout {
@@ -116,7 +184,8 @@
   grid-template-columns:
     25% 34% 41%;
 
-  padding: 14px 24px 10px;
+  padding:
+    14px 24px 10px;
 
   box-sizing: border-box;
 
@@ -124,7 +193,7 @@
 }
 
 /* =========================================================
-   COMMON PANEL
+   COMMON PANELS
    ========================================================= */
 
 .live-tv-categories,
@@ -138,7 +207,8 @@
   box-sizing: border-box;
 
   border:
-    1px solid rgba(255, 255, 255, 0.07);
+    1px solid
+      rgba(255, 255, 255, 0.07);
 
   border-radius: 11px;
 
@@ -146,14 +216,11 @@
     rgba(8, 18, 54, 0.38);
 
   box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.12);
+    0 12px 30px
+      rgba(0, 0, 0, 0.12);
 
   overflow: hidden;
 }
-
-/* =========================================================
-   COLUMN TITLES
-   ========================================================= */
 
 .live-tv-column-title {
   height: 55px;
@@ -169,7 +236,8 @@
   gap: 3px;
 
   border-bottom:
-    1px solid rgba(255, 255, 255, 0.07);
+    1px solid
+      rgba(255, 255, 255, 0.07);
 
   background:
     rgba(255, 255, 255, 0.035);
@@ -199,7 +267,8 @@
    ========================================================= */
 
 .live-tv-category-list {
-  height: calc(100% - 55px);
+  height:
+    calc(100% - 55px);
 
   padding: 7px;
 
@@ -210,6 +279,7 @@
 
   scrollbar-width: none;
 }
+
 .live-tv-category-list::-webkit-scrollbar {
   display: none;
 }
@@ -234,11 +304,6 @@
     rgba(255, 255, 255, 0.72);
 
   font-size: 12px;
-
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
 }
 
 .live-tv-category strong {
@@ -273,9 +338,11 @@
     );
 
   box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.07);
+    0 0 0 3px
+      rgba(255, 255, 255, 0.07);
 
-  transform: scale(1.01);
+  transform:
+    scale(1.01);
 }
 
 /* =========================================================
@@ -283,7 +350,8 @@
    ========================================================= */
 
 .live-tv-channel-list {
-  height: calc(100% - 55px);
+  height:
+    calc(100% - 55px);
 
   padding: 7px;
 
@@ -308,11 +376,6 @@
     2px solid transparent;
 
   border-radius: 7px;
-
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
 }
 
 .live-tv-channel-logo {
@@ -334,6 +397,16 @@
 
   font-size: 10px;
   font-weight: 900;
+}
+
+.live-tv-channel-logo-image,
+.live-tv-preview-logo-image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  border-radius: inherit;
 }
 
 .live-tv-channel-info {
@@ -392,9 +465,11 @@
     );
 
   box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.07);
+    0 0 0 3px
+      rgba(255, 255, 255, 0.07);
 
-  transform: scale(1.01);
+  transform:
+    scale(1.01);
 }
 
 /* =========================================================
@@ -402,13 +477,30 @@
    ========================================================= */
 
 .live-tv-preview {
-  padding-bottom: 10px;
+  min-height: 0;
+
+  padding:
+    0 10px 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+.live-tv-preview >
+.live-tv-column-title {
+  margin:
+    0 -10px;
+
+  flex-shrink: 0;
 }
 
 .live-tv-preview-screen {
-  height: 180px;
+  height: 175px;
+  min-height: 175px;
 
-  margin: 10px 12px 0;
+  margin-top: 10px;
 
   position: relative;
 
@@ -418,7 +510,7 @@
 
   overflow: hidden;
 
-  border-radius: 9px;
+  border-radius: 11px;
 
   background:
     radial-gradient(
@@ -428,7 +520,14 @@
     );
 
   border:
-    1px solid rgba(255, 255, 255, 0.08);
+    1px solid
+      rgba(255, 255, 255, 0.10);
+
+  box-shadow:
+    0 10px 28px
+      rgba(0, 0, 0, 0.18);
+
+  flex-shrink: 0;
 }
 
 .live-tv-preview-screen::after {
@@ -437,11 +536,15 @@
   position: absolute;
   inset: 0;
 
+  z-index: 2;
+
+  pointer-events: none;
+
   background:
     linear-gradient(
       to top,
-      rgba(3, 9, 28, 0.88),
-      transparent 65%
+      rgba(3, 9, 28, 0.84),
+      transparent 52%
     );
 }
 
@@ -462,9 +565,21 @@
 
   font-size: 19px;
   font-weight: 900;
+}
 
-  box-shadow:
-    0 15px 40px rgba(0, 0, 0, 0.20);
+.live-tv-preview-fallback {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  z-index: 1;
 }
 
 .live-tv-preview-overlay {
@@ -474,7 +589,7 @@
   right: 14px;
   bottom: 12px;
 
-  z-index: 2;
+  z-index: 3;
 
   display: flex;
   align-items: center;
@@ -483,9 +598,9 @@
 }
 
 .live-tv-preview-overlay span {
-  padding: 4px 7px;
+  padding: 4px 8px;
 
-  border-radius: 4px;
+  border-radius: 5px;
 
   background: #e83d55;
 
@@ -508,155 +623,490 @@
 }
 
 /* =========================================================
-   PROGRAM / EPG
+   COMPACT EPG
    ========================================================= */
 
-.live-tv-program {
-  margin: 10px 12px 0;
+.live-tv-epg-list {
+  min-height: 0;
+  flex: 1;
 
-  padding: 12px;
+  margin-top: 7px;
 
-  border-radius: 9px;
+  display: grid;
 
-  background:
-    rgba(255, 255, 255, 0.045);
+  grid-template-rows:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
 
-  border:
-    1px solid rgba(255, 255, 255, 0.05);
+  gap: 5px;
+
+  overflow: hidden;
 }
 
-.live-tv-program-status {
+.live-tv-epg-now {
+  min-width: 0;
+  min-height: 0;
+
+  padding:
+    5px 8px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  overflow: hidden;
+
+  border-radius: 7px;
+
+  border:
+    1px solid
+      rgba(255, 255, 255, 0.10);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(104, 65, 205, 0.34),
+      rgba(31, 72, 168, 0.30)
+    );
+}
+
+.live-tv-epg-now-top {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+}
+
+.live-tv-epg-now-label {
+  min-width: 0;
+
   display: flex;
   align-items: center;
 
-  gap: 6px;
+  gap: 5px;
 
   color:
-    rgba(255, 255, 255, 0.53);
+    rgba(255, 255, 255, 0.84);
 
-  font-size: 7px;
-  font-weight: 800;
+  font-size: 6px;
+  font-weight: 900;
 
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
+
+  white-space: nowrap;
 }
 
-.live-dot {
-  width: 7px;
-  height: 7px;
+.live-tv-epg-live-dot {
+  width: 6px;
+  height: 6px;
+
+  flex-shrink: 0;
 
   border-radius: 50%;
 
   background: #f24c62;
-
-  box-shadow:
-    0 0 9px rgba(242, 76, 98, 0.55);
 }
 
-.live-tv-program h2 {
-  margin: 7px 0 4px;
-
-  font-size: 14px;
-}
-
-.live-tv-program p {
-  min-height: 28px;
-
-  margin: 0;
+.live-tv-epg-time {
+  min-width: 0;
 
   color:
-    rgba(255, 255, 255, 0.47);
+    rgba(255, 255, 255, 0.46);
 
-  font-size: 8px;
-  line-height: 1.45;
+  font-size: 6px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.live-tv-progress {
-  margin-top: 10px;
+.live-tv-epg-now-title {
+  display: block;
+
+  min-width: 0;
+
+  margin-top: 2px;
+
+  padding-top: 1px;
+  padding-bottom: 4px;
+
+  color: #ffffff;
+
+  font-size: 9px;
+
+  line-height: 1.5;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.live-tv-progress-bar {
-  height: 4px;
+.live-tv-epg-progress {
+  height: 3px;
+
+  margin-top: 3px;
 
   overflow: hidden;
 
-  border-radius: 4px;
+  border-radius: 999px;
 
   background:
-    rgba(255, 255, 255, 0.08);
+    rgba(255, 255, 255, 0.10);
 }
 
-.live-tv-progress-bar span {
+.live-tv-epg-progress span {
   display: block;
 
-  width: 48%;
   height: 100%;
 
   border-radius: inherit;
 
   background:
-    rgba(65, 170, 255, 0.95);
+    linear-gradient(
+      90deg,
+      rgba(74, 176, 255, 1),
+      rgba(128, 96, 255, 1)
+    );
 }
 
-.live-tv-progress-time {
-  margin-top: 5px;
+.live-tv-epg-upcoming {
+  display: contents;
+}
+
+.live-tv-epg-upcoming-row {
+  min-width: 0;
+  min-height: 0;
+
+  padding:
+    5px 8px;
+
+  box-sizing: border-box;
+
+  display: grid;
+
+  grid-template-columns:
+    24px minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 7px;
+
+  overflow: hidden;
+
+  border-radius: 7px;
+
+  border:
+    1px solid
+      rgba(255, 255, 255, 0.055);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(92, 69, 186, 0.08)
+    );
+}
+
+.live-tv-epg-upcoming-row.is-empty {
+  opacity: 0.62;
+}
+
+.live-tv-epg-upcoming-number {
+  width: 21px;
+  height: 21px;
 
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.live-tv-epg-upcoming-copy {
+  min-width: 0;
+}
+
+.live-tv-epg-upcoming-meta {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 1px;
+
+  color:
+    rgba(167, 181, 255, 0.68);
+
+  font-size: 6px;
+  font-weight: 800;
+
+  letter-spacing: 0.55px;
+
+  white-space: nowrap;
+}
+
+.live-tv-epg-upcoming-meta
+span:last-child {
+  color:
+    rgba(255, 255, 255, 0.36);
+
+  letter-spacing: 0;
+}
+
+.live-tv-epg-upcoming-copy
+strong {
+  display: block;
+
+  min-width: 0;
+
+  color:
+    rgba(255, 255, 255, 0.94);
+
+  font-size: 9px;
+
+  line-height: 1.1;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   PROFESSIONAL SEARCH OVERLAY
+   ========================================================= */
+
+.live-tv-search-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 500;
+
+  padding-top: 90px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  background:
+    rgba(2, 7, 24, 0.62);
+
+  backdrop-filter:
+    blur(6px);
+}
+
+.live-tv-search-panel {
+  width:
+    min(
+      650px,
+      calc(100vw - 100px)
+    );
+
+  padding: 15px;
+
+  box-sizing: border-box;
+
+  border:
+    1px solid
+      rgba(255, 255, 255, 0.12);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7, 18, 55, 0.99),
+      rgba(22, 22, 76, 0.99)
+    );
+
+  box-shadow:
+    0 25px 70px
+      rgba(0, 0, 0, 0.48);
+}
+
+.live-tv-search-panel-top {
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    42px minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 11px;
+
+  margin-bottom: 12px;
+}
+
+.live-tv-search-panel-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #298aff,
+      #6849d6
+    );
+
+  font-size: 21px;
+}
+
+.live-tv-search-panel-copy {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.live-tv-search-panel-copy span {
+  color:
+    rgba(158, 182, 255, 0.72);
+
+  font-size: 7px;
+  font-weight: 900;
+
+  letter-spacing: 1.3px;
+}
+
+.live-tv-search-panel-copy strong {
+  font-size: 14px;
+}
+
+.live-tv-search-result-count {
+  min-width: 38px;
+  height: 28px;
+
+  padding: 0 9px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border-radius: 20px;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  font-size: 9px;
+}
+
+.live-tv-search-input-shell {
+  height: 54px;
+
+  padding: 0 13px;
+
+  box-sizing: border-box;
+
+  display: grid;
+
+  grid-template-columns:
+    auto minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    2px solid #ffffff;
+
+  border-radius: 11px;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  box-shadow:
+    0 0 0 4px
+      rgba(63, 125, 255, 0.12);
+}
+
+.live-tv-search-input-shell
+> span {
+  font-size: 20px;
+
+  color:
+    rgba(255, 255, 255, 0.70);
+}
+
+.live-tv-search-input-shell
+input {
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.live-tv-search-input-shell
+input::placeholder {
+  color:
+    rgba(255, 255, 255, 0.32);
+}
+
+.live-tv-search-clear {
+  width: 30px;
+  height: 30px;
+
+  border: none;
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.10);
+
+  color: #ffffff;
+
+  font-size: 18px;
+}
+
+.live-tv-search-hint {
+  margin-top: 10px;
 
   color:
     rgba(255, 255, 255, 0.38);
 
   font-size: 7px;
-}
 
-/* =========================================================
-   NEXT PROGRAMS
-   ========================================================= */
-
-.live-tv-next-programs {
-  margin: 8px 12px 0;
-
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  gap: 7px;
-}
-
-.live-tv-next-item {
-  min-width: 0;
-
-  padding: 9px 10px;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 4px;
-
-  border-radius: 7px;
-
-  background:
-    rgba(255, 255, 255, 0.035);
-
-  border:
-    1px solid rgba(255, 255, 255, 0.045);
-}
-
-.live-tv-next-item span {
-  color:
-    rgba(255, 255, 255, 0.34);
-
-  font-size: 6px;
-  font-weight: 800;
-
-  letter-spacing: 1px;
-}
-
-.live-tv-next-item strong {
-  font-size: 9px;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-align: center;
 }
 
 /* =========================================================
@@ -683,21 +1133,14 @@
 }
 
 /* =========================================================
-   GOOGLE TV / 16:9 LANDSCAPE
+   SMALL LANDSCAPE
    ========================================================= */
 
-@media (min-width: 700px) and (orientation: landscape) {
-  .live-tv-page {
-    height: 100vh;
-    min-height: 0;
-  }
-}
-
-/* =========================================================
-   SMALLER LANDSCAPE SCREENS
-   ========================================================= */
-
-@media (max-width: 850px) and (orientation: landscape) {
+@media (
+  max-width: 850px
+) and (
+  orientation: landscape
+) {
   .live-tv-layout {
     grid-template-columns:
       24% 34% 42%;
@@ -717,7 +1160,8 @@
   }
 
   .live-tv-preview-screen {
-    height: 155px;
+    height: 138px;
+    min-height: 138px;
   }
 
   .live-tv-category {
@@ -727,54 +1171,112 @@
   .live-tv-channel {
     height: 49px;
   }
-}/* =========================================================
-   REAL LIVE PREVIEW
-   ========================================================= */
 
-.live-tv-preview-video {
-  position: absolute;
-  inset: 0;
+  .live-tv-search-overlay {
+    padding-top: 68px;
+  }
 
-  width: 100%;
-  height: 100%;
+  .live-tv-search-panel {
+    width:
+      min(
+        560px,
+        calc(100vw - 70px)
+      );
 
-  object-fit: cover;
+    padding: 12px;
+  }
 
-  background: #030815;
+  .live-tv-search-input-shell {
+    height: 48px;
+  }
 
-  z-index: 1;
-  pointer-events: none;
+  .live-tv-search-input-shell
+  input {
+    font-size: 15px;
+  }
 }
 
-.live-tv-preview-fallback {
-  position: absolute;
-  inset: 0;
+
+/* =========================================================
+   LIVE TV FAVORITES
+   ========================================================= */
+
+.live-tv-channel-badges {
+  flex-shrink: 0;
 
   display: flex;
-  flex-direction: column;
+  align-items: center;
 
+  gap: 6px;
+}
+
+.live-tv-favorite-heart {
+  width: 24px;
+  height: 24px;
+
+  display: flex;
   align-items: center;
   justify-content: center;
 
-  gap: 10px;
+  border-radius: 50%;
 
-  z-index: 2;
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  color: #ff3b5c;
+
+  font-size: 15px;
+  line-height: 1;
+
+  text-shadow:
+    0 0 8px
+      rgba(255, 59, 92, 0.58);
+
+  animation:
+    bonoFavoritePop
+    0.18s ease-out;
 }
 
-.live-tv-preview-message {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 9px;
+@keyframes bonoFavoritePop {
+  from {
+    transform:
+      scale(0.65);
+
+    opacity: 0;
+  }
+
+  to {
+    transform:
+      scale(1);
+
+    opacity: 1;
+  }
 }
 
-.live-tv-preview-overlay {
-  z-index: 3;
+.live-tv-category:nth-child(2)
+> span::before {
+  content: "♥";
+
+  margin-right: 7px;
+
+  color: #ff3b5c;
+
+  font-size: 10px;
+
+  text-shadow:
+    0 0 7px
+      rgba(255, 59, 92, 0.50);
 }
 
-.live-tv-channel-logo-image,
-.live-tv-preview-logo-image {
-  width: 100%;
-  height: 100%;
+@media (
+  max-width: 850px
+) and (
+  orientation: landscape
+) {
+  .live-tv-favorite-heart {
+    width: 21px;
+    height: 21px;
 
-  object-fit: contain;
-  border-radius: inherit;
+    font-size: 13px;
+  }
 }

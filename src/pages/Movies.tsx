@@ -1,3 +1,5 @@
+
+
 import {
   useCallback,
   useEffect,
@@ -7,16 +9,19 @@ import {
 } from "react";
 
 import {
+  openNativeYouTube,
   playNativeFullscreen,
 } from "../services/nativePlayer";
 
 import {
   getMovieCategories,
+  getMovieInfo,
   getMovies,
 } from "../services/moviesService";
 
 import type {
   MovieCategory,
+  MovieInfo,
   MovieItem,
 } from "../services/moviesService";
 
@@ -34,6 +39,10 @@ type FocusArea =
 
 const MOVIES_PER_ROW = 5;
 const MOVIE_WINDOW_ROWS = 3;
+
+
+
+
 
 function Movies({
   onBack,
@@ -87,6 +96,21 @@ function Movies({
   ] = useState<MovieItem | null>(null);
 
   const [
+    movieInfo,
+    setMovieInfo,
+  ] = useState<MovieInfo | null>(null);
+
+  const [
+    movieInfoLoading,
+    setMovieInfoLoading,
+  ] = useState(false);
+
+  const [
+    movieInfoError,
+    setMovieInfoError,
+  ] = useState("");
+
+  const [
     searchOpen,
     setSearchOpen,
   ] = useState(false);
@@ -95,6 +119,11 @@ function Movies({
     searchQuery,
     setSearchQuery,
   ] = useState("");
+
+  const [
+    detailsAction,
+    setDetailsAction,
+  ] = useState<0 | 1>(0);
 
   /*
    * =========================================================
@@ -162,6 +191,51 @@ function Movies({
       ],
       [movieCategories]
     );
+
+  const movieCategoryCounts =
+    useMemo(() => {
+      const counts =
+        new Map<
+          string,
+          number
+        >();
+
+      for (
+        const movie
+        of movies
+      ) {
+        counts.set(
+          movie.categoryId,
+          (
+            counts.get(
+              movie.categoryId
+            ) ?? 0
+          ) + 1
+        );
+      }
+
+      return counts;
+    }, [
+      movies,
+    ]);
+
+  const getMovieCategoryCount =
+    (
+      categoryId: string
+    ) => {
+      if (
+        categoryId ===
+        "all"
+      ) {
+        return movies.length;
+      }
+
+      return (
+        movieCategoryCounts.get(
+          categoryId
+        ) ?? 0
+      );
+    };
 
   /*
    * =========================================================
@@ -362,6 +436,89 @@ function Movies({
 
   /*
    * =========================================================
+   * TRAILER
+   * =========================================================
+   */
+
+  
+
+  const openTrailer =
+  async () => {
+    const trailerValue =
+      movieInfo
+        ?.youtubeTrailer
+        ?.trim() ??
+      "";
+
+    if (!trailerValue) {
+      console.warn(
+        "BONO Trailer unavailable"
+      );
+
+      return;
+    }
+
+    console.log(
+      "BONO Trailer value:",
+      trailerValue
+    );
+
+    try {
+      await openNativeYouTube(
+        trailerValue
+      );
+
+      console.log(
+        "BONO YouTube launched"
+      );
+    } catch (error) {
+      console.error(
+        "BONO Trailer open failed:",
+        error
+      );
+    }
+  };
+
+  /*
+   * =========================================================
+   * OPEN MOVIE DETAILS
+   * =========================================================
+   */
+
+  const openMovieDetails = async (
+    movie: MovieItem
+  ) => {
+    setSelectedMovie(movie);
+    setMovieInfo(null);
+    setMovieInfoError("");
+    setMovieInfoLoading(true);
+    setDetailsAction(0);
+    setFocusArea("details");
+
+    try {
+      const info =
+        await getMovieInfo(
+          "326498",
+          movie.id
+        );
+
+      setMovieInfo(info);
+    } catch (error) {
+      console.error(
+        "BONO Movie info failed:",
+        error
+      );
+
+      setMovieInfoError(
+        "Movie information is unavailable."
+      );
+    } finally {
+      setMovieInfoLoading(false);
+    }
+  };
+
+  /*
+   * =========================================================
    * BACK NAVIGATION
    *
    * Full Screen
@@ -385,6 +542,10 @@ function Movies({
         focusArea === "details"
       ) {
         setSelectedMovie(null);
+        setMovieInfo(null);
+        setMovieInfoError("");
+        setMovieInfoLoading(false);
+        setDetailsAction(0);
         setFocusArea("movies");
 
         pageRef.current?.focus();
@@ -557,6 +718,14 @@ function Movies({
       event.preventDefault();
 
       if (
+        focusArea ===
+        "details"
+      ) {
+        setDetailsAction(0);
+        return;
+      }
+
+      if (
         focusArea === "search"
       ) {
         setFocusArea(
@@ -606,6 +775,14 @@ function Movies({
 
     if (right) {
       event.preventDefault();
+
+      if (
+        focusArea ===
+        "details"
+      ) {
+        setDetailsAction(1);
+        return;
+      }
 
       /*
        * CATEGORIES -> MOVIES
@@ -800,17 +977,32 @@ function Movies({
       event.preventDefault();
 
       /*
-       * DETAILS -> VLC FULL SCREEN
+       * DETAILS ACTIONS
        */
       if (
-        focusArea === "details" &&
+        focusArea ===
+          "details" &&
         selectedMovie
       ) {
-        void playNativeFullscreen(
-          selectedMovie.streamUrl
-        );
+        if (
+          detailsAction ===
+          0
+        ) {
+          void playNativeFullscreen(
+            selectedMovie.streamUrl
+          );
 
-        return;
+          return;
+        }
+
+        if (
+          detailsAction ===
+          1
+        ) {
+          void openTrailer();
+
+          return;
+        }
       }
 
       /*
@@ -851,8 +1043,7 @@ function Movies({
           ];
 
         if (movie) {
-          setSelectedMovie(movie);
-          setFocusArea("details");
+          void openMovieDetails(movie);
         }
 
         return;
@@ -957,17 +1148,37 @@ function Movies({
       )}
 
       {/* =====================================================
-          MOVIE DETAILS
+          MOVIE DETAILS - FULL SCREEN
       ===================================================== */}
 
       {selectedMovie && (
-        <div className="movie-details-overlay">
-          <div className="movie-details-card">
+        <section
+          className="movie-details-fullscreen"
+          style={{
+            backgroundImage: (
+              movieInfo?.backdrop ||
+              movieInfo?.poster ||
+              selectedMovie.poster
+            )
+              ? `url("${
+                  movieInfo?.backdrop ||
+                  movieInfo?.poster ||
+                  selectedMovie.poster
+                }")`
+              : undefined,
+          }}
+        >
+          <div className="movie-details-background-glow" />
 
-            <div className="movie-details-poster">
-              {selectedMovie.poster ? (
+          <div className="movie-details-full-layout">
+            <div className="movie-details-full-poster">
+              {(
+                movieInfo?.poster ||
+                selectedMovie.poster
+              ) ? (
                 <img
                   src={
+                    movieInfo?.poster ||
                     selectedMovie.poster
                   }
                   alt=""
@@ -981,53 +1192,158 @@ function Movies({
               )}
             </div>
 
-            <div className="movie-details-content">
-              <span className="movie-details-label">
+            <div className="movie-details-full-content">
+              <span className="movie-details-eyebrow">
                 MOVIE
               </span>
 
               <h2>
-                {selectedMovie.title}
+                {movieInfo?.title ||
+                  selectedMovie.title}
               </h2>
 
-              <div className="movie-details-meta">
-                <span>
-                  {selectedMovie.category}
-                </span>
-
-                {selectedMovie.year && (
-                  <span>
-                    {selectedMovie.year}
+              <div className="movie-details-badges">
+                {(movieInfo?.rating ||
+                  selectedMovie.rating) && (
+                  <span className="movie-detail-rating">
+                    ★{" "}
+                    {movieInfo?.rating ||
+                      selectedMovie.rating}
                   </span>
                 )}
 
-                {selectedMovie.rating && (
+                {movieInfo?.year && (
                   <span>
-                    ★ {selectedMovie.rating}
+                    {movieInfo.year}
+                  </span>
+                )}
+
+                <span>
+                  {movieInfo?.genre ||
+                    selectedMovie.category}
+                </span>
+
+                {movieInfo?.duration && (
+                  <span>
+                    {movieInfo.duration}
                   </span>
                 )}
               </div>
 
-              <p>
-                Movie information will appear
-                here when extended VOD metadata
-                is connected.
+              <p className="movie-details-plot">
+                {movieInfoLoading
+                  ? "Loading movie information..."
+                  : movieInfoError ||
+                    movieInfo?.plot ||
+                    "No description available for this movie."}
               </p>
 
-              <button
-                type="button"
-                className="movie-details-play is-focused"
-              >
-                ▶ PLAY
-              </button>
+              <div className="movie-details-info-grid">
+                <div className="movie-detail-info">
+                  <span className="movie-detail-info-label">
+                    RELEASE DATE
+                  </span>
+                  <strong>
+                    {movieInfo?.releaseDate ||
+                      movieInfo?.year ||
+                      "—"}
+                  </strong>
+                </div>
 
-              <span className="movie-details-hint">
-                OK Play • BACK Return
-              </span>
+                <div className="movie-detail-info">
+                  <span className="movie-detail-info-label">
+                    DURATION
+                  </span>
+                  <strong>
+                    {movieInfo?.duration ||
+                      "—"}
+                  </strong>
+                </div>
+
+                <div className="movie-detail-info">
+                  <span className="movie-detail-info-label">
+                    DIRECTOR
+                  </span>
+                  <strong>
+                    {movieInfo?.director ||
+                      "—"}
+                  </strong>
+                </div>
+
+                <div className="movie-detail-info">
+                  <span className="movie-detail-info-label">
+                    CAST
+                  </span>
+                  <strong>
+                    {movieInfo?.cast ||
+                      "—"}
+                  </strong>
+                </div>
+
+                <div className="movie-detail-info">
+                  <span className="movie-detail-info-label">
+                    GENRE
+                  </span>
+                  <strong>
+                    {movieInfo?.genre ||
+                      selectedMovie.category}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="movie-details-actions">
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className={`movie-details-action movie-details-play ${
+                    detailsAction === 0
+                      ? "is-focused"
+                      : ""
+                  }`}
+                >
+                  <span className="movie-details-action-icon">
+                    ▶
+                  </span>
+
+                  <span>
+                    PLAY
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-disabled={
+                    !movieInfo
+                      ?.youtubeTrailer
+                  }
+                  className={`movie-details-action movie-details-trailer ${
+                    detailsAction === 1
+                      ? "is-focused"
+                      : ""
+                  } ${
+                    !movieInfo
+                      ?.youtubeTrailer
+                      ? "is-disabled"
+                      : ""
+                  }`}
+                >
+                  <span className="movie-details-action-icon">
+                    ▣
+                  </span>
+
+                  <span>
+                    TRAILER
+                  </span>
+                </button>
+
+                <div className="movie-details-return">
+                  BACK&nbsp;&nbsp;Return
+                </div>
+              </div>
             </div>
-
           </div>
-        </div>
+        </section>
       )}
 
       {/* =====================================================
@@ -1065,9 +1381,19 @@ function Movies({
                     : ""
                 }`}
               >
-                {
-                  category.category_name
-                }
+                <span className="movies-category-name">
+                  {
+                    category.category_name
+                  }
+                </span>
+
+                <strong className="movies-category-count">
+                  {
+                    getMovieCategoryCount(
+                      category.category_id
+                    )
+                  }
+                </strong>
               </div>
             )
           )}

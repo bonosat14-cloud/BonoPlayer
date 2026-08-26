@@ -7,15 +7,15 @@ import {
 } from "../config/api";
 
 const DB_NAME =
-  "bonoplayer-movies-cache";
+  "bonoplayer-series-cache";
 
 const DB_VERSION = 1;
 
-const MOVIES_STORE_NAME =
-  "movies";
+const SERIES_STORE_NAME =
+  "series";
 
-const MOVIE_CATEGORIES_STORE_NAME =
-  "movie-categories";
+const SERIES_CATEGORIES_STORE_NAME =
+  "series-categories";
 
 const CACHE_MAX_AGE_MS =
   6 * 60 * 60 * 1000;
@@ -26,12 +26,12 @@ const CACHE_MAX_AGE_MS =
  * =========================================================
  */
 
-export type MovieCategory = {
+export type SeriesCategory = {
   category_id: string;
   category_name: string;
 };
 
-export type MovieItem = {
+export type SeriesItem = {
   id: string;
 
   title: string;
@@ -42,20 +42,46 @@ export type MovieItem = {
 
   poster: string;
 
-  extension: string;
+  backdrop: string;
 
-  rating?: string;
+  rating: string;
 
-  year?: string;
+  year: string;
 
-  streamUrl: string;
+  plot: string;
 };
 
-/*
- * معلومات الفيلم الكاملة
- */
+export type SeriesEpisode = {
+  id: string;
 
-export type MovieInfo = {
+  episodeNumber: number;
+
+  title: string;
+
+  extension: string;
+
+  seasonNumber: number;
+
+  streamUrl: string;
+
+  duration: string;
+
+  plot: string;
+
+  poster: string;
+};
+
+export type SeriesSeason = {
+  seasonNumber: number;
+
+  name: string;
+
+  poster: string;
+
+  episodes: SeriesEpisode[];
+};
+
+export type SeriesInfo = {
   id: string;
 
   title: string;
@@ -72,8 +98,6 @@ export type MovieInfo = {
 
   year: string;
 
-  duration: string;
-
   rating: string;
 
   poster: string;
@@ -81,6 +105,8 @@ export type MovieInfo = {
   backdrop: string;
 
   youtubeTrailer: string;
+
+  seasons: SeriesSeason[];
 };
 
 /*
@@ -89,40 +115,54 @@ export type MovieInfo = {
  * =========================================================
  */
 
-type XtreamVodStream = {
+type XtreamSeries = {
   num?: number;
 
-  name: string;
-
-  stream_type?: string;
-
-  stream_id: number;
-
-  stream_icon?: string;
-
-  rating?: string;
-
-  rating_5based?: number;
-
-  added?: string;
-
-  category_id: string;
-
-  container_extension?: string;
-
-  custom_sid?: string | null;
-
-  direct_source?: string;
-};
-
-type XtreamVodInfoData = {
   name?: string;
 
-  o_name?: string;
+  series_id:
+    | number
+    | string;
+
+  cover?: string;
+
+  plot?: string;
+
+  cast?: string;
+
+  director?: string;
+
+  genre?: string;
+
+  releaseDate?: string;
+
+  release_date?: string;
+
+  rating?: string | number;
+
+  rating_5based?:
+    | string
+    | number;
+
+  backdrop_path?:
+    | string[]
+    | string;
+
+  youtube_trailer?: string;
+
+  category_id?: string;
+
+  last_modified?: string;
+};
+
+type XtreamSeriesInfoData = {
+  name?: string;
+
+  title?: string;
+
+  cover?: string;
 
   movie_image?: string;
-
-  cover_big?: string;
 
   plot?: string;
 
@@ -144,42 +184,86 @@ type XtreamVodInfoData = {
 
   year?: string | number;
 
+  rating?: string | number;
+
+  rating_5based?:
+    | string
+    | number;
+
+  backdrop_path?:
+    | string[]
+    | string;
+
+  youtube_trailer?: string;
+};
+
+type XtreamSeason = {
+  air_date?: string;
+
+  episode_count?: number;
+
+  id?: number;
+
+  name?: string;
+
+  overview?: string;
+
+  season_number?:
+    | number
+    | string;
+
+  cover?: string;
+
+  cover_big?: string;
+};
+
+type XtreamEpisodeInfo = {
+  movie_image?: string;
+
+  cover_big?: string;
+
+  plot?: string;
+
+  description?: string;
+
   duration?: string;
 
   duration_secs?: number;
 
   rating?: string | number;
 
-  rating_5based?: string | number;
-
-  youtube_trailer?: string;
-
-  backdrop_path?: string[] | string;
-
-  tmdb_id?: string | number;
+  releaseDate?: string;
 };
 
-type XtreamVodMovieData = {
-  stream_id?: number | string;
+type XtreamEpisode = {
+  id:
+    | string
+    | number;
 
-  name?: string;
+  episode_num?:
+    | number
+    | string;
+
+  title?: string;
 
   container_extension?: string;
+
+  info?: XtreamEpisodeInfo;
+
+  season?:
+    | number
+    | string;
 };
 
-/*
- * بعض Xtream Servers يرجعون:
- *
- * {
- *   info: {...},
- *   movie_data: {...}
- * }
- */
+type XtreamSeriesInfoResponseData = {
+  info?: XtreamSeriesInfoData;
 
-type XtreamVodInfo = {
-  info?: XtreamVodInfoData;
+  seasons?: XtreamSeason[];
 
-  movie_data?: XtreamVodMovieData;
+  episodes?: Record<
+    string,
+    XtreamEpisode[]
+  >;
 };
 
 /*
@@ -191,23 +275,23 @@ type XtreamVodInfo = {
 type CategoriesResponse = {
   ok: boolean;
 
-  categories?: MovieCategory[];
+  categories?: SeriesCategory[];
 
   message?: string;
 };
 
-type StreamsResponse = {
+type SeriesResponse = {
   ok: boolean;
 
-  streams?: XtreamVodStream[];
+  series?: XtreamSeries[];
 
   message?: string;
 };
 
-type MovieInfoResponse = {
+type SeriesInfoResponse = {
   ok: boolean;
 
-  info?: XtreamVodInfo;
+  info?: XtreamSeriesInfoResponseData;
 
   message?: string;
 };
@@ -223,15 +307,15 @@ type CategoriesCache = {
 
   updatedAt: number;
 
-  categories: MovieCategory[];
+  categories: SeriesCategory[];
 };
 
-type MoviesCache = {
+type SeriesCache = {
   deviceId: string;
 
   updatedAt: number;
 
-  movies: MovieItem[];
+  series: SeriesItem[];
 };
 
 /*
@@ -240,7 +324,7 @@ type MoviesCache = {
  * =========================================================
  */
 
-function openMoviesDb(): Promise<IDBDatabase> {
+function openSeriesDb(): Promise<IDBDatabase> {
   return new Promise(
     (resolve, reject) => {
       const request =
@@ -256,11 +340,11 @@ function openMoviesDb(): Promise<IDBDatabase> {
 
           if (
             !db.objectStoreNames.contains(
-              MOVIES_STORE_NAME
+              SERIES_STORE_NAME
             )
           ) {
             db.createObjectStore(
-              MOVIES_STORE_NAME,
+              SERIES_STORE_NAME,
               {
                 keyPath:
                   "deviceId",
@@ -270,11 +354,11 @@ function openMoviesDb(): Promise<IDBDatabase> {
 
           if (
             !db.objectStoreNames.contains(
-              MOVIE_CATEGORIES_STORE_NAME
+              SERIES_CATEGORIES_STORE_NAME
             )
           ) {
             db.createObjectStore(
-              MOVIE_CATEGORIES_STORE_NAME,
+              SERIES_CATEGORIES_STORE_NAME,
               {
                 keyPath:
                   "deviceId",
@@ -308,19 +392,19 @@ async function getCachedCategories(
   deviceId: string
 ): Promise<CategoriesCache | null> {
   const db =
-    await openMoviesDb();
+    await openSeriesDb();
 
   return new Promise(
     (resolve, reject) => {
       const transaction =
         db.transaction(
-          MOVIE_CATEGORIES_STORE_NAME,
+          SERIES_CATEGORIES_STORE_NAME,
           "readonly"
         );
 
       const store =
         transaction.objectStore(
-          MOVIE_CATEGORIES_STORE_NAME
+          SERIES_CATEGORIES_STORE_NAME
         );
 
       const request =
@@ -349,19 +433,19 @@ async function saveCategoriesCache(
   cache: CategoriesCache
 ): Promise<void> {
   const db =
-    await openMoviesDb();
+    await openSeriesDb();
 
   return new Promise(
     (resolve, reject) => {
       const transaction =
         db.transaction(
-          MOVIE_CATEGORIES_STORE_NAME,
+          SERIES_CATEGORIES_STORE_NAME,
           "readwrite"
         );
 
       const store =
         transaction.objectStore(
-          MOVIE_CATEGORIES_STORE_NAME
+          SERIES_CATEGORIES_STORE_NAME
         );
 
       store.put(cache);
@@ -383,27 +467,27 @@ async function saveCategoriesCache(
 
 /*
  * =========================================================
- * MOVIES CACHE
+ * SERIES CACHE
  * =========================================================
  */
 
-async function getCachedMovies(
+async function getCachedSeries(
   deviceId: string
-): Promise<MoviesCache | null> {
+): Promise<SeriesCache | null> {
   const db =
-    await openMoviesDb();
+    await openSeriesDb();
 
   return new Promise(
     (resolve, reject) => {
       const transaction =
         db.transaction(
-          MOVIES_STORE_NAME,
+          SERIES_STORE_NAME,
           "readonly"
         );
 
       const store =
         transaction.objectStore(
-          MOVIES_STORE_NAME
+          SERIES_STORE_NAME
         );
 
       const request =
@@ -413,7 +497,7 @@ async function getCachedMovies(
         resolve(
           (
             request.result as
-              | MoviesCache
+              | SeriesCache
               | undefined
           ) ?? null
         );
@@ -428,23 +512,23 @@ async function getCachedMovies(
   );
 }
 
-async function saveMoviesCache(
-  cache: MoviesCache
+async function saveSeriesCache(
+  cache: SeriesCache
 ): Promise<void> {
   const db =
-    await openMoviesDb();
+    await openSeriesDb();
 
   return new Promise(
     (resolve, reject) => {
       const transaction =
         db.transaction(
-          MOVIES_STORE_NAME,
+          SERIES_STORE_NAME,
           "readwrite"
         );
 
       const store =
         transaction.objectStore(
-          MOVIES_STORE_NAME
+          SERIES_STORE_NAME
         );
 
       store.put(cache);
@@ -483,17 +567,60 @@ function valueToString(
   return String(value);
 }
 
+function valueToNumber(
+  value: unknown,
+  fallback = 0
+): number {
+  const result =
+    Number(value);
+
+  if (
+    Number.isNaN(result)
+  ) {
+    return fallback;
+  }
+
+  return result;
+}
+
 function getBackdrop(
   value:
     | string[]
     | string
     | undefined
 ): string {
-  if (Array.isArray(value)) {
+  if (
+    Array.isArray(value)
+  ) {
     return value[0] ?? "";
   }
 
   return value ?? "";
+}
+
+function extractYear(
+  yearValue: unknown,
+  releaseDate: string
+): string {
+  const directYear =
+    valueToString(
+      yearValue
+    );
+
+  if (directYear) {
+    return directYear;
+  }
+
+  if (!releaseDate) {
+    return "";
+  }
+
+  const match =
+    releaseDate.match(
+      /\b(19|20)\d{2}\b/
+    );
+
+  return match?.[0] ?? "";
 }
 
 /*
@@ -502,14 +629,14 @@ function getBackdrop(
  * =========================================================
  */
 
-async function fetchMovieCategories(
+async function fetchSeriesCategories(
   deviceId: string
-): Promise<MovieCategory[]> {
+): Promise<SeriesCategory[]> {
   const response =
     await CapacitorHttp.get({
       url:
         `${API_BASE_URL}/api/device/${deviceId}` +
-        `/vod/categories`,
+        `/series/categories`,
     });
 
   const data =
@@ -522,7 +649,7 @@ async function fetchMovieCategories(
   ) {
     throw new Error(
       data.message ??
-        "Unable to load movie categories."
+        "Unable to load series categories."
     );
   }
 
@@ -531,39 +658,39 @@ async function fetchMovieCategories(
 
 /*
  * =========================================================
- * NETWORK - MOVIES
+ * NETWORK - SERIES
  * =========================================================
  */
 
-async function fetchMoviesFromNetwork(
+async function fetchSeriesFromNetwork(
   deviceId: string
-): Promise<MovieItem[]> {
+): Promise<SeriesItem[]> {
   const [
     categories,
     response,
   ] = await Promise.all([
-    fetchMovieCategories(
+    fetchSeriesCategories(
       deviceId
     ),
 
     CapacitorHttp.get({
       url:
         `${API_BASE_URL}/api/device/${deviceId}` +
-        `/vod/streams`,
+        `/series`,
     }),
   ]);
 
   const data =
     response.data as
-      StreamsResponse;
+      SeriesResponse;
 
   if (
     !data.ok ||
-    !data.streams
+    !data.series
   ) {
     throw new Error(
       data.message ??
-        "Unable to load movies."
+        "Unable to load series."
     );
   }
 
@@ -577,43 +704,56 @@ async function fetchMoviesFromNetwork(
       )
     );
 
-  return data.streams.map(
-    (stream) => {
-      const extension =
-        stream.container_extension ||
-        "mp4";
+  return data.series.map(
+    (item) => {
+      const categoryId =
+        valueToString(
+          item.category_id
+        );
+
+      const releaseDate =
+        item.releaseDate ||
+        item.release_date ||
+        "";
 
       return {
-        id: String(
-          stream.stream_id
-        ),
+        id:
+          valueToString(
+            item.series_id
+          ),
 
         title:
-          stream.name,
+          item.name || "",
 
-        categoryId:
-          stream.category_id,
+        categoryId,
 
         category:
           categoryMap.get(
-            stream.category_id
+            categoryId
           ) ?? "Other",
 
         poster:
-          stream.stream_icon ||
-          "",
+          item.cover || "",
 
-        extension,
+        backdrop:
+          getBackdrop(
+            item.backdrop_path
+          ),
 
         rating:
-          stream.rating ??
-          "",
+          valueToString(
+            item.rating ??
+              item.rating_5based
+          ),
 
-        year: "",
+        year:
+          extractYear(
+            undefined,
+            releaseDate
+          ),
 
-        streamUrl:
-          `${API_BASE_URL}/api/device/${deviceId}` +
-          `/vod/play/${stream.stream_id}/${extension}`,
+        plot:
+          item.plot || "",
       };
     }
   );
@@ -625,9 +765,9 @@ async function fetchMoviesFromNetwork(
  * =========================================================
  */
 
-export async function getMovieCategories(
+export async function getSeriesCategories(
   deviceId: string
-): Promise<MovieCategory[]> {
+): Promise<SeriesCategory[]> {
   let cached:
     | CategoriesCache
     | null = null;
@@ -639,7 +779,7 @@ export async function getMovieCategories(
       );
   } catch (error) {
     console.warn(
-      "BONO movie categories cache read failed:",
+      "BONO series categories cache read failed:",
       error
     );
   }
@@ -651,9 +791,6 @@ export async function getMovieCategories(
       Date.now() -
       cached.updatedAt;
 
-    /*
-     * CACHE FRESH
-     */
     if (
       age <
       CACHE_MAX_AGE_MS
@@ -661,11 +798,7 @@ export async function getMovieCategories(
       return cached.categories;
     }
 
-    /*
-     * CACHE STALE
-     * Return now, refresh later.
-     */
-    void fetchMovieCategories(
+    void fetchSeriesCategories(
       deviceId
     )
       .then(
@@ -686,7 +819,7 @@ export async function getMovieCategories(
       )
       .catch((error) => {
         console.error(
-          "BONO movie categories refresh failed:",
+          "BONO series categories refresh failed:",
           error
         );
       });
@@ -694,11 +827,8 @@ export async function getMovieCategories(
     return cached.categories;
   }
 
-  /*
-   * NO CACHE
-   */
   const categories =
-    await fetchMovieCategories(
+    await fetchSeriesCategories(
       deviceId
     );
 
@@ -715,7 +845,7 @@ export async function getMovieCategories(
     );
   } catch (error) {
     console.warn(
-      "BONO movie categories cache save failed:",
+      "BONO series categories cache save failed:",
       error
     );
   }
@@ -725,145 +855,138 @@ export async function getMovieCategories(
 
 /*
  * =========================================================
- * PUBLIC API - MOVIES
+ * PUBLIC API - SERIES
  * =========================================================
  */
 
-export async function getMovies(
+export async function getSeries(
   deviceId: string
-): Promise<MovieItem[]> {
+): Promise<SeriesItem[]> {
   let cached:
-    | MoviesCache
+    | SeriesCache
     | null = null;
 
   try {
     cached =
-      await getCachedMovies(
+      await getCachedSeries(
         deviceId
       );
   } catch (error) {
     console.warn(
-      "BONO movies cache read failed:",
+      "BONO series cache read failed:",
       error
     );
   }
 
   if (
-    cached?.movies.length
+    cached?.series.length
   ) {
     const age =
       Date.now() -
       cached.updatedAt;
 
-    /*
-     * CACHE FRESH
-     */
     if (
       age <
       CACHE_MAX_AGE_MS
     ) {
       console.log(
-        `BONO movies cache hit: ${cached.movies.length} movies`
+        `BONO series cache hit: ${cached.series.length} series`
       );
 
-      return cached.movies;
+      return cached.series;
     }
 
-    /*
-     * CACHE STALE
-     */
     console.log(
-      "BONO movies stale cache returned, refreshing..."
+      "BONO series stale cache returned, refreshing..."
     );
 
-    void fetchMoviesFromNetwork(
+    void fetchSeriesFromNetwork(
       deviceId
     )
       .then(
-        async (movies) => {
-          await saveMoviesCache(
+        async (
+          series
+        ) => {
+          await saveSeriesCache(
             {
               deviceId,
 
               updatedAt:
                 Date.now(),
 
-              movies,
+              series,
             }
           );
 
           console.log(
-            `BONO movies cache refreshed: ${movies.length} movies`
+            `BONO series cache refreshed: ${series.length} series`
           );
         }
       )
       .catch((error) => {
         console.error(
-          "BONO movies background refresh failed:",
+          "BONO series background refresh failed:",
           error
         );
       });
 
-    return cached.movies;
+    return cached.series;
   }
 
-  /*
-   * NO CACHE
-   */
   console.log(
-    "BONO movies cache miss, loading network..."
+    "BONO series cache miss, loading network..."
   );
 
-  const movies =
-    await fetchMoviesFromNetwork(
+  const series =
+    await fetchSeriesFromNetwork(
       deviceId
     );
 
   try {
-    await saveMoviesCache(
+    await saveSeriesCache(
       {
         deviceId,
 
         updatedAt:
           Date.now(),
 
-        movies,
+        series,
       }
     );
 
     console.log(
-      `BONO movies cache saved: ${movies.length} movies`
+      `BONO series cache saved: ${series.length} series`
     );
   } catch (error) {
     console.warn(
-      "BONO movies cache save failed:",
+      "BONO series cache save failed:",
       error
     );
   }
 
-  return movies;
+  return series;
 }
 
 /*
  * =========================================================
- * PUBLIC API - MOVIE INFO
+ * PUBLIC API - SERIES INFO
  * =========================================================
  */
 
-export async function getMovieInfo(
+export async function getSeriesInfo(
   deviceId: string,
-  movieId: string
-): Promise<MovieInfo> {
+  seriesId: string
+): Promise<SeriesInfo> {
   const response =
     await CapacitorHttp.get({
       url:
         `${API_BASE_URL}/api/device/${deviceId}` +
-        `/vod/info/${movieId}`,
+        `/series/info/${seriesId}`,
     });
 
   const data =
     response.data as
-      MovieInfoResponse;
+      SeriesInfoResponse;
 
   if (
     !data.ok ||
@@ -871,18 +994,9 @@ export async function getMovieInfo(
   ) {
     throw new Error(
       data.message ??
-        "Unable to load movie information."
+        "Unable to load series information."
     );
   }
-
-  /*
-   * Xtream response:
-   *
-   * {
-   *   info: {...},
-   *   movie_data: {...}
-   * }
-   */
 
   const raw =
     data.info;
@@ -890,80 +1004,15 @@ export async function getMovieInfo(
   const info =
     raw.info ?? {};
 
-  const movieData =
-    raw.movie_data ?? {};
-
-  const movieIdValue =
-    movieData.stream_id ??
-    movieId;
-
-  const title =
-    info.name ||
-    info.o_name ||
-    movieData.name ||
-    "";
-
-  const plot =
-    info.plot ||
-    info.description ||
-    "";
-
-  const cast =
-    info.cast ||
-    info.actors ||
-    "";
-
-  const director =
-    info.director ||
-    "";
-
-  const genre =
-    info.genre ||
-    "";
-
   const releaseDate =
     info.releaseDate ||
     info.release_date ||
     info.releasedate ||
     "";
 
-  /*
-   * إذا year غير موجود
-   * نحاول أخذه من releaseDate
-   */
-  let year =
-    valueToString(
-      info.year
-    );
-
-  if (
-    !year &&
-    releaseDate
-  ) {
-    const yearMatch =
-      releaseDate.match(
-        /\b(19|20)\d{2}\b/
-      );
-
-    if (yearMatch) {
-      year =
-        yearMatch[0];
-    }
-  }
-
-  const duration =
-    info.duration ||
-    "";
-
-  const rating =
-    valueToString(
-      info.rating ??
-        info.rating_5based
-    );
-
   const poster =
+    info.cover ||
     info.movie_image ||
-    info.cover_big ||
     "";
 
   const backdrop =
@@ -971,45 +1020,206 @@ export async function getMovieInfo(
       info.backdrop_path
     );
 
-  const youtubeTrailer =
-    info.youtube_trailer ||
-    "";
+  /*
+   * =======================================================
+   * EPISODES -> SEASONS
+   * =======================================================
+   */
 
-  const movieInfo: MovieInfo = {
+  const episodesBySeason =
+    raw.episodes ?? {};
+
+  const seasonMetadata =
+    new Map<
+      number,
+      XtreamSeason
+    >();
+
+  for (
+    const season of
+    raw.seasons ?? []
+  ) {
+    const seasonNumber =
+      valueToNumber(
+        season.season_number,
+        -1
+      );
+
+    if (
+      seasonNumber >= 0
+    ) {
+      seasonMetadata.set(
+        seasonNumber,
+        season
+      );
+    }
+  }
+
+  const seasons: SeriesSeason[] =
+    Object.entries(
+      episodesBySeason
+    )
+      .map(
+        ([
+          seasonKey,
+          rawEpisodes,
+        ]) => {
+          const seasonNumber =
+            valueToNumber(
+              seasonKey,
+              0
+            );
+
+          const metadata =
+            seasonMetadata.get(
+              seasonNumber
+            );
+
+          const episodes =
+            rawEpisodes.map(
+              (
+                episode,
+                index
+              ): SeriesEpisode => {
+                const extension =
+                  episode.container_extension ||
+                  "mp4";
+
+                const episodeNumber =
+                  valueToNumber(
+                    episode.episode_num,
+                    index + 1
+                  );
+
+                const episodeId =
+                  valueToString(
+                    episode.id
+                  );
+
+                const episodeInfo =
+                  episode.info ?? {};
+
+                return {
+                  id:
+                    episodeId,
+
+                  episodeNumber,
+
+                  title:
+                    episode.title ||
+                    `Episode ${episodeNumber}`,
+
+                  extension,
+
+                  seasonNumber,
+
+                  streamUrl:
+                    `${API_BASE_URL}/api/device/${deviceId}` +
+                    `/series/play/${episodeId}/${extension}`,
+
+                  duration:
+                    episodeInfo.duration ||
+                    "",
+
+                  plot:
+                    episodeInfo.plot ||
+                    episodeInfo.description ||
+                    "",
+
+                  poster:
+                    episodeInfo.movie_image ||
+                    episodeInfo.cover_big ||
+                    poster,
+                };
+              }
+            );
+
+          episodes.sort(
+            (a, b) =>
+              a.episodeNumber -
+              b.episodeNumber
+          );
+
+          return {
+            seasonNumber,
+
+            name:
+              metadata?.name ||
+              `Season ${seasonNumber}`,
+
+            poster:
+              metadata?.cover ||
+              metadata?.cover_big ||
+              poster,
+
+            episodes,
+          };
+        }
+      );
+
+  seasons.sort(
+    (a, b) =>
+      a.seasonNumber -
+      b.seasonNumber
+  );
+
+  const seriesInfo: SeriesInfo = {
     id:
-      valueToString(
-        movieIdValue
-      ),
+      seriesId,
 
-    title,
+    title:
+      info.name ||
+      info.title ||
+      "",
 
-    plot,
+    plot:
+      info.plot ||
+      info.description ||
+      "",
 
-    cast,
+    cast:
+      info.cast ||
+      info.actors ||
+      "",
 
-    director,
+    director:
+      info.director ||
+      "",
 
-    genre,
+    genre:
+      info.genre ||
+      "",
 
     releaseDate,
 
-    year,
+    year:
+      extractYear(
+        info.year,
+        releaseDate
+      ),
 
-    duration,
-
-    rating,
+    rating:
+      valueToString(
+        info.rating ??
+          info.rating_5based
+      ),
 
     poster,
 
     backdrop,
 
-    youtubeTrailer,
+    youtubeTrailer:
+      info.youtube_trailer ||
+      "",
+
+    seasons,
   };
 
   console.log(
-    "BONO Movie info loaded:",
-    movieInfo.title
+    "BONO Series info loaded:",
+    seriesInfo.title,
+    `${seriesInfo.seasons.length} seasons`
   );
 
-  return movieInfo;
+  return seriesInfo;
 }

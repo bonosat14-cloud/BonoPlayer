@@ -15,6 +15,7 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -40,6 +41,22 @@ public class VlcPlayerActivity extends AppCompatActivity {
     private TextView rewindButton;
     private TextView playPauseButton;
     private TextView forwardButton;
+    private TextView ccButton;
+
+    private FrameLayout subtitleMenuOverlay;
+    private LinearLayout subtitleMenuList;
+
+    private final ArrayList<Integer> subtitleTrackIds =
+            new ArrayList<>();
+
+    private final ArrayList<String> subtitleTrackNames =
+            new ArrayList<>();
+
+    private final ArrayList<TextView> subtitleMenuItems =
+            new ArrayList<>();
+
+    private boolean subtitleMenuVisible = false;
+    private int subtitleMenuIndex = 0;
 
     private TextView currentTimeText;
     private TextView durationText;
@@ -50,6 +67,18 @@ public class VlcPlayerActivity extends AppCompatActivity {
             new Handler(Looper.getMainLooper());
 
     private boolean controlsVisible = false;
+
+    private boolean subtitlesAvailable = false;
+    private boolean subtitlesEnabled = false;
+    private int selectedSubtitleTrackId = -1;
+
+    /*
+     * 0 = Rewind
+     * 1 = Play / Pause
+     * 2 = Forward
+     * 3 = CC
+     */
+    private int focusedControlIndex = 1;
 
     private static final long SEEK_STEP_MS =
             10_000L;
@@ -108,6 +137,11 @@ public class VlcPlayerActivity extends AppCompatActivity {
                         new OnBackPressedCallback(true) {
                             @Override
                             public void handleOnBackPressed() {
+                                if (subtitleMenuVisible) {
+                                    closeSubtitleMenu();
+                                    return;
+                                }
+
                                 finish();
                             }
                         }
@@ -446,6 +480,13 @@ controlsVisible = false;
                         " ⏩"
                 );
 
+        ccButton =
+                createControlButton(
+                        "CC"
+                );
+
+        updateCcButton();
+
         buttonRow.addView(
                 rewindButton
         );
@@ -456,6 +497,10 @@ controlsVisible = false;
 
         buttonRow.addView(
                 forwardButton
+        );
+
+        buttonRow.addView(
+                ccButton
         );
 
         controlsContainer.addView(
@@ -576,17 +621,29 @@ controlsVisible = false;
         );
 
         button.setFocusable(
-                false
+                true
+        );
+
+        button.setFocusableInTouchMode(
+                true
         );
 
         button.setClickable(
                 false
         );
 
+        button.setOnFocusChangeListener(
+                (view, hasFocus) ->
+                        updateControlButtonStyle(
+                                (TextView) view,
+                                hasFocus
+                        )
+        );
+
         button.setPadding(
-                dp(24),
+                dp(22),
                 dp(12),
-                dp(24),
+                dp(22),
                 dp(12)
         );
 
@@ -667,7 +724,6 @@ controlsVisible = false;
     public boolean dispatchKeyEvent(
             KeyEvent event
     ) {
-
         if (
                 event.getAction() !=
                 KeyEvent.ACTION_DOWN
@@ -681,14 +737,127 @@ controlsVisible = false;
                 event.getKeyCode();
 
         /*
-         * LEFT = -10 SECONDS
+         * =====================================================
+         * SUBTITLE LANGUAGE MENU
+         * =====================================================
          */
+        if (subtitleMenuVisible) {
+            if (
+                    keyCode ==
+                    KeyEvent.KEYCODE_DPAD_UP
+            ) {
+                moveSubtitleMenuFocus(
+                        -1
+                );
+
+                return true;
+            }
+
+            if (
+                    keyCode ==
+                    KeyEvent.KEYCODE_DPAD_DOWN
+            ) {
+                moveSubtitleMenuFocus(
+                        1
+                );
+
+                return true;
+            }
+
+            if (
+                    keyCode ==
+                            KeyEvent.KEYCODE_DPAD_CENTER ||
+                    keyCode ==
+                            KeyEvent.KEYCODE_ENTER ||
+                    keyCode ==
+                            KeyEvent.KEYCODE_NUMPAD_ENTER
+            ) {
+                selectSubtitleMenuItem();
+
+                return true;
+            }
+
+            if (
+                    keyCode ==
+                            KeyEvent.KEYCODE_DPAD_LEFT ||
+                    keyCode ==
+                            KeyEvent.KEYCODE_DPAD_RIGHT ||
+                    keyCode ==
+                            KeyEvent.KEYCODE_BACK
+            ) {
+                closeSubtitleMenu();
+
+                return true;
+            }
+
+            return true;
+        }
+
+        /*
+         * =====================================================
+         * CONTROLS HIDDEN
+         *
+         * الأزرار لا تظهر إلا عند الضغط على OK.
+         * LEFT / RIGHT يعملان Seek بدون إظهار الـControls.
+         * =====================================================
+         */
+        if (!controlsVisible) {
+
+            if (
+                    keyCode ==
+                    KeyEvent.KEYCODE_DPAD_LEFT
+            ) {
+                seekRelative(
+                        -SEEK_STEP_MS
+                );
+
+                return true;
+            }
+
+            if (
+                    keyCode ==
+                    KeyEvent.KEYCODE_DPAD_RIGHT
+            ) {
+                seekRelative(
+                        SEEK_STEP_MS
+                );
+
+                return true;
+            }
+
+            if (
+                    keyCode ==
+                            KeyEvent.KEYCODE_DPAD_CENTER ||
+                    keyCode ==
+                            KeyEvent.KEYCODE_ENTER ||
+                    keyCode ==
+                            KeyEvent.KEYCODE_NUMPAD_ENTER
+            ) {
+                showControls();
+                focusControl(1);
+
+                return true;
+            }
+
+            return super.dispatchKeyEvent(
+                    event
+            );
+        }
+
+        /*
+         * =====================================================
+         * CONTROLS VISIBLE
+         * LEFT / RIGHT = Move focus
+         * OK = Execute selected control
+         * =====================================================
+         */
+
         if (
                 keyCode ==
                 KeyEvent.KEYCODE_DPAD_LEFT
         ) {
-            seekRelative(
-                    -SEEK_STEP_MS
+            moveControlFocus(
+                    -1
             );
 
             showControls();
@@ -696,15 +865,12 @@ controlsVisible = false;
             return true;
         }
 
-        /*
-         * RIGHT = +10 SECONDS
-         */
         if (
                 keyCode ==
                 KeyEvent.KEYCODE_DPAD_RIGHT
         ) {
-            seekRelative(
-                    SEEK_STEP_MS
+            moveControlFocus(
+                    1
             );
 
             showControls();
@@ -712,9 +878,28 @@ controlsVisible = false;
             return true;
         }
 
-        /*
-         * OK / ENTER
-         */
+        if (
+                keyCode ==
+                KeyEvent.KEYCODE_DPAD_UP
+        ) {
+            showControls();
+
+            return true;
+        }
+
+        if (
+                keyCode ==
+                KeyEvent.KEYCODE_DPAD_DOWN
+        ) {
+            focusControl(
+                    1
+            );
+
+            showControls();
+
+            return true;
+        }
+
         if (
                 keyCode ==
                         KeyEvent.KEYCODE_DPAD_CENTER ||
@@ -723,26 +908,8 @@ controlsVisible = false;
                 keyCode ==
                         KeyEvent.KEYCODE_NUMPAD_ENTER
         ) {
+            executeFocusedControl();
 
-            if (!controlsVisible) {
-                showControls();
-            } else {
-                togglePlayPause();
-            }
-
-            return true;
-        }
-
-        /*
-         * UP / DOWN
-         * Show controls
-         */
-        if (
-                keyCode ==
-                        KeyEvent.KEYCODE_DPAD_UP ||
-                keyCode ==
-                        KeyEvent.KEYCODE_DPAD_DOWN
-        ) {
             showControls();
 
             return true;
@@ -751,6 +918,883 @@ controlsVisible = false;
         return super.dispatchKeyEvent(
                 event
         );
+    }
+
+    /*
+     * =========================================================
+     * CONTROL FOCUS
+     * =========================================================
+     */
+
+    private void moveControlFocus(
+            int direction
+    ) {
+        int next =
+                focusedControlIndex +
+                direction;
+
+        next =
+                Math.max(
+                        0,
+                        Math.min(
+                                3,
+                                next
+                        )
+                );
+
+        focusControl(
+                next
+        );
+    }
+
+    private void focusControl(
+            int index
+    ) {
+        focusedControlIndex =
+                Math.max(
+                        0,
+                        Math.min(
+                                3,
+                                index
+                        )
+                );
+
+        TextView target =
+                getControlButton(
+                        focusedControlIndex
+                );
+
+        if (
+                target != null
+        ) {
+            target.requestFocus();
+        }
+    }
+
+    private TextView getControlButton(
+            int index
+    ) {
+        switch (index) {
+            case 0:
+                return rewindButton;
+
+            case 1:
+                return playPauseButton;
+
+            case 2:
+                return forwardButton;
+
+            case 3:
+                return ccButton;
+
+            default:
+                return playPauseButton;
+        }
+    }
+
+    private void executeFocusedControl() {
+        switch (
+                focusedControlIndex
+        ) {
+            case 0:
+                seekRelative(
+                        -SEEK_STEP_MS
+                );
+                break;
+
+            case 1:
+                togglePlayPause();
+                break;
+
+            case 2:
+                seekRelative(
+                        SEEK_STEP_MS
+                );
+                break;
+
+            case 3:
+                openSubtitleMenu();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private void updateControlButtonStyle(
+            TextView button,
+            boolean focused
+    ) {
+        GradientDrawable background =
+                new GradientDrawable();
+
+        if (focused) {
+            background.setColor(
+                    Color.argb(
+                            225,
+                            26,
+                            103,
+                            230
+                    )
+            );
+
+            background.setStroke(
+                    dp(2),
+                    Color.WHITE
+            );
+
+            button.setScaleX(
+                    1.08f
+            );
+
+            button.setScaleY(
+                    1.08f
+            );
+        } else {
+            background.setColor(
+                    Color.argb(
+                            95,
+                            18,
+                            24,
+                            42
+                    )
+            );
+
+            button.setScaleX(
+                    1.0f
+            );
+
+            button.setScaleY(
+                    1.0f
+            );
+        }
+
+        background.setCornerRadius(
+                dp(14)
+        );
+
+        button.setBackground(
+                background
+        );
+    }
+
+    /*
+     * =========================================================
+     * SUBTITLES / CC
+     * =========================================================
+     */
+
+    private void refreshSubtitleTracks() {
+        if (
+                mediaPlayer == null
+        ) {
+            return;
+        }
+
+        subtitleTrackIds.clear();
+        subtitleTrackNames.clear();
+
+        try {
+            MediaPlayer.TrackDescription[] tracks =
+                    mediaPlayer.getSpuTracks();
+
+            if (
+                    tracks != null
+            ) {
+                for (
+                        MediaPlayer.TrackDescription track
+                        : tracks
+                ) {
+                    if (
+                            track == null ||
+                            track.id == -1
+                    ) {
+                        continue;
+                    }
+
+                    subtitleTrackIds.add(
+                            track.id
+                    );
+
+                    String name =
+                            track.name;
+
+                    if (
+                            name == null ||
+                            name.trim().isEmpty()
+                    ) {
+                        name =
+                                "Subtitle " +
+                                subtitleTrackIds.size();
+                    }
+
+                    subtitleTrackNames.add(
+                            name.trim()
+                    );
+                }
+            }
+
+            subtitlesAvailable =
+                    !subtitleTrackIds.isEmpty();
+
+            int currentTrack =
+                    mediaPlayer.getSpuTrack();
+
+            subtitlesEnabled =
+                    currentTrack != -1;
+
+            selectedSubtitleTrackId =
+                    currentTrack;
+
+            updateCcButton();
+
+        } catch (
+                Exception ignored
+        ) {
+            subtitlesAvailable =
+                    false;
+
+            subtitlesEnabled =
+                    false;
+
+            selectedSubtitleTrackId =
+                    -1;
+
+            subtitleTrackIds.clear();
+            subtitleTrackNames.clear();
+
+            updateCcButton();
+        }
+    }
+
+    private void openSubtitleMenu() {
+        refreshSubtitleTracks();
+
+        handler.removeCallbacks(
+                hideControlsRunnable
+        );
+
+        if (
+                subtitleMenuOverlay != null
+        ) {
+            ViewGroup parent =
+                    (ViewGroup)
+                            subtitleMenuOverlay
+                                    .getParent();
+
+            if (
+                    parent != null
+            ) {
+                parent.removeView(
+                        subtitleMenuOverlay
+                );
+            }
+        }
+
+        subtitleMenuOverlay =
+                new FrameLayout(this);
+
+        subtitleMenuOverlay.setBackgroundColor(
+                Color.argb(
+                        145,
+                        0,
+                        0,
+                        0
+                )
+        );
+
+        FrameLayout.LayoutParams overlayParams =
+                new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                );
+
+        root.addView(
+                subtitleMenuOverlay,
+                overlayParams
+        );
+
+        LinearLayout panel =
+                new LinearLayout(this);
+
+        panel.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        panel.setPadding(
+                dp(20),
+                dp(18),
+                dp(20),
+                dp(18)
+        );
+
+        GradientDrawable panelBackground =
+                new GradientDrawable();
+
+        panelBackground.setColor(
+                Color.argb(
+                        245,
+                        10,
+                        17,
+                        34
+                )
+        );
+
+        panelBackground.setCornerRadius(
+                dp(18)
+        );
+
+        panelBackground.setStroke(
+                dp(1),
+                Color.argb(
+                        70,
+                        255,
+                        255,
+                        255
+                )
+        );
+
+        panel.setBackground(
+                panelBackground
+        );
+
+        FrameLayout.LayoutParams panelParams =
+                new FrameLayout.LayoutParams(
+                        dp(380),
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+
+        panelParams.gravity =
+                Gravity.CENTER_VERTICAL |
+                Gravity.RIGHT;
+
+        panelParams.setMargins(
+                0,
+                0,
+                dp(52),
+                0
+        );
+
+        TextView title =
+                new TextView(this);
+
+        title.setText(
+                "CC  •  SUBTITLES"
+        );
+
+        title.setTextColor(
+                Color.WHITE
+        );
+
+        title.setTextSize(
+                18
+        );
+
+        title.setPadding(
+                dp(12),
+                0,
+                dp(12),
+                dp(14)
+        );
+
+        panel.addView(
+                title
+        );
+
+        TextView hint =
+                new TextView(this);
+
+        hint.setText(
+                subtitlesAvailable
+                        ? "Choose subtitle language"
+                        : "No embedded subtitles found"
+        );
+
+        hint.setTextColor(
+                Color.argb(
+                        150,
+                        255,
+                        255,
+                        255
+                )
+        );
+
+        hint.setTextSize(
+                12
+        );
+
+        hint.setPadding(
+                dp(12),
+                0,
+                dp(12),
+                dp(12)
+        );
+
+        panel.addView(
+                hint
+        );
+
+        ScrollView scrollView =
+                new ScrollView(this);
+
+        subtitleMenuList =
+                new LinearLayout(this);
+
+        subtitleMenuList.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        scrollView.addView(
+                subtitleMenuList,
+                new ScrollView.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+        );
+
+        panel.addView(
+                scrollView,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        0,
+                        1f
+                )
+        );
+
+        subtitleMenuItems.clear();
+
+        addSubtitleMenuItem(
+                "OFF"
+        );
+
+        for (
+                String trackName
+                : subtitleTrackNames
+        ) {
+            addSubtitleMenuItem(
+                    trackName
+            );
+        }
+
+        subtitleMenuOverlay.addView(
+                panel,
+                panelParams
+        );
+
+        subtitleMenuVisible =
+                true;
+
+        /*
+         * Focus current active language.
+         * 0 = OFF
+         * 1..N = tracks
+         */
+        subtitleMenuIndex =
+                0;
+
+        if (
+                subtitlesEnabled &&
+                selectedSubtitleTrackId != -1
+        ) {
+            int currentIndex =
+                    subtitleTrackIds.indexOf(
+                            selectedSubtitleTrackId
+                    );
+
+            if (
+                    currentIndex >= 0
+            ) {
+                subtitleMenuIndex =
+                        currentIndex + 1;
+            }
+        }
+
+        updateSubtitleMenuFocus();
+    }
+
+    private void addSubtitleMenuItem(
+            String text
+    ) {
+        if (
+                subtitleMenuList == null
+        ) {
+            return;
+        }
+
+        TextView item =
+                new TextView(this);
+
+        item.setText(
+                text
+        );
+
+        item.setTextColor(
+                Color.WHITE
+        );
+
+        item.setTextSize(
+                15
+        );
+
+        item.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        item.setPadding(
+                dp(16),
+                dp(12),
+                dp(16),
+                dp(12)
+        );
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(52)
+                );
+
+        params.setMargins(
+                0,
+                dp(3),
+                0,
+                dp(3)
+        );
+
+        item.setLayoutParams(
+                params
+        );
+
+        subtitleMenuItems.add(
+                item
+        );
+
+        subtitleMenuList.addView(
+                item
+        );
+    }
+
+    private void moveSubtitleMenuFocus(
+            int direction
+    ) {
+        if (
+                subtitleMenuItems.isEmpty()
+        ) {
+            return;
+        }
+
+        subtitleMenuIndex =
+                Math.max(
+                        0,
+                        Math.min(
+                                subtitleMenuItems.size() -
+                                        1,
+                                subtitleMenuIndex +
+                                        direction
+                        )
+                );
+
+        updateSubtitleMenuFocus();
+    }
+
+    private void updateSubtitleMenuFocus() {
+        for (
+                int i = 0;
+                i < subtitleMenuItems.size();
+                i++
+        ) {
+            TextView item =
+                    subtitleMenuItems.get(
+                            i
+                    );
+
+            GradientDrawable background =
+                    new GradientDrawable();
+
+            if (
+                    i ==
+                    subtitleMenuIndex
+            ) {
+                background.setColor(
+                        Color.argb(
+                                230,
+                                25,
+                                107,
+                                235
+                        )
+                );
+
+                background.setStroke(
+                        dp(2),
+                        Color.WHITE
+                );
+
+                item.setTextColor(
+                        Color.WHITE
+                );
+
+                item.setScaleX(
+                        1.02f
+                );
+
+                item.setScaleY(
+                        1.02f
+                );
+
+                item.post(
+                        () -> {
+                            if (
+                                    item.getParent() !=
+                                    null
+                            ) {
+                                item.requestRectangleOnScreen(
+                                        new android.graphics.Rect(
+                                                0,
+                                                0,
+                                                item.getWidth(),
+                                                item.getHeight()
+                                        )
+                                );
+                            }
+                        }
+                );
+
+            } else {
+                background.setColor(
+                        Color.argb(
+                                70,
+                                255,
+                                255,
+                                255
+                        )
+                );
+
+                item.setTextColor(
+                        Color.argb(
+                                225,
+                                255,
+                                255,
+                                255
+                        )
+                );
+
+                item.setScaleX(
+                        1f
+                );
+
+                item.setScaleY(
+                        1f
+                );
+            }
+
+            background.setCornerRadius(
+                    dp(12)
+            );
+
+            item.setBackground(
+                    background
+            );
+        }
+    }
+
+    private void selectSubtitleMenuItem() {
+        if (
+                mediaPlayer == null
+        ) {
+            closeSubtitleMenu();
+            return;
+        }
+
+        if (
+                subtitleMenuIndex ==
+                0
+        ) {
+            try {
+                mediaPlayer.setSpuTrack(
+                        -1
+                );
+            } catch (
+                    Exception ignored
+            ) {
+            }
+
+            subtitlesEnabled =
+                    false;
+
+            selectedSubtitleTrackId =
+                    -1;
+
+            updateCcButton();
+            closeSubtitleMenu();
+
+            return;
+        }
+
+        int trackArrayIndex =
+                subtitleMenuIndex -
+                1;
+
+        if (
+                trackArrayIndex < 0 ||
+                trackArrayIndex >=
+                        subtitleTrackIds.size()
+        ) {
+            return;
+        }
+
+        int trackId =
+                subtitleTrackIds.get(
+                        trackArrayIndex
+                );
+
+        try {
+            boolean changed =
+                    mediaPlayer.setSpuTrack(
+                            trackId
+                    );
+
+            if (changed) {
+                selectedSubtitleTrackId =
+                        trackId;
+
+                subtitlesEnabled =
+                        true;
+            }
+        } catch (
+                Exception ignored
+        ) {
+        }
+
+        updateCcButton();
+        closeSubtitleMenu();
+    }
+
+    private void closeSubtitleMenu() {
+        subtitleMenuVisible =
+                false;
+
+        if (
+                subtitleMenuOverlay != null
+        ) {
+            ViewGroup parent =
+                    (ViewGroup)
+                            subtitleMenuOverlay
+                                    .getParent();
+
+            if (
+                    parent != null
+            ) {
+                parent.removeView(
+                        subtitleMenuOverlay
+                );
+            }
+
+            subtitleMenuOverlay =
+                    null;
+        }
+
+        subtitleMenuList =
+                null;
+
+        subtitleMenuItems.clear();
+
+        showControls();
+        focusControl(3);
+    }
+
+    private String getSelectedSubtitleName() {
+        if (
+                !subtitlesEnabled ||
+                selectedSubtitleTrackId ==
+                -1
+        ) {
+            return "";
+        }
+
+        int index =
+                subtitleTrackIds.indexOf(
+                        selectedSubtitleTrackId
+                );
+
+        if (
+                index < 0 ||
+                index >=
+                        subtitleTrackNames.size()
+        ) {
+            return "";
+        }
+
+        return subtitleTrackNames.get(
+                index
+        );
+    }
+
+    private void updateCcButton() {
+        if (
+                ccButton == null
+        ) {
+            return;
+        }
+
+        if (
+                !subtitlesAvailable
+        ) {
+            ccButton.setText(
+                    "CC"
+            );
+
+            ccButton.setTextColor(
+                    Color.argb(
+                            145,
+                            255,
+                            255,
+                            255
+                    )
+            );
+
+            return;
+        }
+
+        if (
+                subtitlesEnabled
+        ) {
+            String languageName =
+                    getSelectedSubtitleName();
+
+            if (
+                    languageName.length() >
+                    10
+            ) {
+                languageName =
+                        languageName.substring(
+                                0,
+                                10
+                        );
+            }
+
+            ccButton.setText(
+                    languageName.isEmpty()
+                            ? "CC ON"
+                            : "CC " +
+                              languageName
+            );
+
+            ccButton.setTextColor(
+                    Color.rgb(
+                            86,
+                            188,
+                            255
+                    )
+            );
+
+        } else {
+            ccButton.setText(
+                    "CC OFF"
+            );
+
+            ccButton.setTextColor(
+                    Color.WHITE
+            );
+        }
     }
 
     /*
@@ -979,6 +2023,19 @@ controlsVisible = false;
         controlsVisible =
                 true;
 
+        if (
+                getControlButton(
+                        focusedControlIndex
+                ) != null &&
+                !getControlButton(
+                        focusedControlIndex
+                ).hasFocus()
+        ) {
+            focusControl(
+                    focusedControlIndex
+            );
+        }
+
         handler.removeCallbacks(
                 hideControlsRunnable
         );
@@ -997,7 +2054,8 @@ controlsVisible = false;
 
     private void hideControls() {
         if (
-                controlsContainer == null
+                controlsContainer == null ||
+                subtitleMenuVisible
         ) {
             return;
         }
@@ -1008,6 +2066,13 @@ controlsVisible = false;
 
         controlsVisible =
                 false;
+
+        if (
+                getCurrentFocus() != null
+        ) {
+            getCurrentFocus()
+                    .clearFocus();
+        }
     }
 
     /*
