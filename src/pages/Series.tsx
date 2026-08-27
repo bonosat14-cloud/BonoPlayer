@@ -835,7 +835,7 @@ function Series({
   }
 );
 
-        if
+        if (
           seasons.length >
           0
         ) {
@@ -1039,9 +1039,35 @@ function Series({
           ];
 
         if (episode) {
-          void playNativeFullscreen(
-            episode.streamUrl
-          );
+          void playNativeFullscreen({
+            streamUrl:
+              episode.streamUrl,
+
+            contentType:
+              "episode",
+
+            contentId:
+              String(
+                episode.id
+              ),
+
+            title:
+              episode.title,
+
+            seriesId:
+              selectedSeries
+                ? String(
+                    selectedSeries.id
+                  )
+                : undefined,
+
+            seasonNumber:
+              currentSeason
+                ?.seasonNumber,
+
+            episodeNumber:
+              episode.episodeNumber,
+          });
         }
 
         return;

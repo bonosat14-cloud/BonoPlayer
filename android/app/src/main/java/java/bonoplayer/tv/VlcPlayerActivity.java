@@ -2,6 +2,7 @@ package com.bonoplayer.tv;
 
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +35,27 @@ public class VlcPlayerActivity extends AppCompatActivity {
     private LibVLC libVLC;
     private MediaPlayer mediaPlayer;
     private SurfaceView surfaceView;
+
+    /*
+     * =========================================================
+     * RESUME / CONTINUE WATCHING
+     * =========================================================
+     */
+    private String contentType = "";
+    private String contentId = "";
+    private String contentTitle = "";
+    private String seriesId = "";
+    private int seasonNumber = -1;
+    private int episodeNumber = -1;
+
+    private String resumeKey = "";
+    private long pendingResumePosition = 0L;
+    private boolean resumeApplied = false;
+    private boolean playbackCompleted = false;
+
+    private static final String RESUME_PREFS = "bonoplayer_resume";
+    private static final long MIN_RESUME_POSITION_MS = 30_000L;
+    private static final float COMPLETED_PERCENT = 0.95f;
 
     private FrameLayout root;
     private LinearLayout controlsContainer;
@@ -239,6 +261,26 @@ public class VlcPlayerActivity extends AppCompatActivity {
 
         /*
          * =====================================================
+         * CONTENT IDENTITY / RESUME
+         * =====================================================
+         */
+        contentType = safeString(getIntent().getStringExtra("contentType"));
+        contentId = safeString(getIntent().getStringExtra("contentId"));
+        contentTitle = safeString(getIntent().getStringExtra("title"));
+        seriesId = safeString(getIntent().getStringExtra("seriesId"));
+        seasonNumber = getIntent().getIntExtra("seasonNumber", -1);
+        episodeNumber = getIntent().getIntExtra("episodeNumber", -1);
+
+        resumeKey = buildResumeKey();
+
+        if (!resumeKey.isEmpty()) {
+            pendingResumePosition =
+                    getSharedPreferences(RESUME_PREFS, MODE_PRIVATE)
+                            .getLong(resumeKey + "_position", 0L);
+        }
+
+        /*
+         * =====================================================
          * VLC
          * =====================================================
          */
@@ -361,6 +403,7 @@ public class VlcPlayerActivity extends AppCompatActivity {
                         case MediaPlayer.Event.Playing:
                             runOnUiThread(() -> {
                                 updatePlayPauseIcon();
+                                applyPendingResume();
                                 
                             });
                             break;
@@ -373,6 +416,8 @@ public class VlcPlayerActivity extends AppCompatActivity {
                             break;
 
                         case MediaPlayer.Event.EndReached:
+                            playbackCompleted = true;
+                            clearResumePosition();
                             runOnUiThread(
                                     this::finish
                             );
@@ -2135,6 +2180,143 @@ controlsVisible = false;
 
     /*
      * =========================================================
+     * RESUME HELPERS
+     * =========================================================
+     */
+
+    private String safeString(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String buildResumeKey() {
+        if (contentType.isEmpty() || contentId.isEmpty()) {
+            return "";
+        }
+
+        if ("movie".equals(contentType)) {
+            return "movie_" + contentId;
+        }
+
+        if ("episode".equals(contentType)) {
+            StringBuilder key = new StringBuilder("episode_");
+
+            if (!seriesId.isEmpty()) {
+                key.append(seriesId).append("_");
+            }
+
+            if (seasonNumber >= 0) {
+                key.append("s").append(seasonNumber).append("_");
+            }
+
+            if (episodeNumber >= 0) {
+                key.append("e").append(episodeNumber).append("_");
+            }
+
+            key.append(contentId);
+            return key.toString();
+        }
+
+        return "";
+    }
+
+    private void applyPendingResume() {
+        if (resumeApplied || mediaPlayer == null || resumeKey.isEmpty()) {
+            return;
+        }
+
+        long duration = mediaPlayer.getLength();
+
+        if (duration <= 0) {
+            return;
+        }
+
+        resumeApplied = true;
+
+        if (
+                pendingResumePosition >= MIN_RESUME_POSITION_MS &&
+                pendingResumePosition <
+                        (long) (duration * COMPLETED_PERCENT)
+        ) {
+            long target =
+                    Math.min(
+                            pendingResumePosition,
+                            Math.max(0L, duration - 1_000L)
+                    );
+
+            mediaPlayer.setTime(target);
+            updateProgress();
+        } else if (pendingResumePosition > 0) {
+            clearResumePosition();
+        }
+    }
+
+    private void saveResumePosition() {
+        if (
+                playbackCompleted ||
+                mediaPlayer == null ||
+                resumeKey.isEmpty()
+        ) {
+            return;
+        }
+
+        long current = mediaPlayer.getTime();
+        long duration = mediaPlayer.getLength();
+
+        if (current < MIN_RESUME_POSITION_MS || duration <= 0) {
+            clearResumePosition();
+            return;
+        }
+
+        if (
+                ((float) current / (float) duration) >=
+                        COMPLETED_PERCENT
+        ) {
+            clearResumePosition();
+            return;
+        }
+
+        SharedPreferences.Editor editor =
+                getSharedPreferences(RESUME_PREFS, MODE_PRIVATE)
+                        .edit();
+
+        editor.putLong(resumeKey + "_position", current);
+        editor.putLong(resumeKey + "_duration", duration);
+        editor.putString(resumeKey + "_type", contentType);
+        editor.putString(resumeKey + "_id", contentId);
+        editor.putString(resumeKey + "_title", contentTitle);
+        editor.putString(resumeKey + "_seriesId", seriesId);
+        editor.putInt(resumeKey + "_season", seasonNumber);
+        editor.putInt(resumeKey + "_episode", episodeNumber);
+        editor.putLong(
+                resumeKey + "_updatedAt",
+                System.currentTimeMillis()
+        );
+        editor.apply();
+    }
+
+    private void clearResumePosition() {
+        if (resumeKey.isEmpty()) {
+            return;
+        }
+
+        SharedPreferences preferences =
+                getSharedPreferences(RESUME_PREFS, MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = preferences.edit();
+        String prefix = resumeKey + "_";
+
+        for (String key : preferences.getAll().keySet()) {
+            if (key != null && key.startsWith(prefix)) {
+                editor.remove(key);
+            }
+        }
+
+        editor.apply();
+        pendingResumePosition = 0L;
+    }
+
+    /*
+     * =========================================================
      * CLEANUP
      * =========================================================
      */
@@ -2154,6 +2336,8 @@ controlsVisible = false;
         if (
                 mediaPlayer != null
         ) {
+            saveResumePosition();
+
             mediaPlayer.stop();
 
             mediaPlayer

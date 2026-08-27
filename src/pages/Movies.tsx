@@ -1,5 +1,3 @@
-
-
 import {
   useCallback,
   useEffect,
@@ -988,9 +986,22 @@ function Movies({
           detailsAction ===
           0
         ) {
-          void playNativeFullscreen(
-            selectedMovie.streamUrl
-          );
+          void playNativeFullscreen({
+            streamUrl:
+              selectedMovie.streamUrl,
+
+            contentType:
+              "movie",
+
+            contentId:
+              String(
+                selectedMovie.id
+              ),
+
+            title:
+              movieInfo?.title ||
+              selectedMovie.title,
+          });
 
           return;
         }

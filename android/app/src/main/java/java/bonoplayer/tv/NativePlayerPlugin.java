@@ -965,6 +965,13 @@ public class NativePlayerPlugin extends Plugin {
                         "streamUrl"
                 );
 
+        String contentType = call.getString("contentType");
+        String contentId = call.getString("contentId");
+        String title = call.getString("title");
+        String seriesId = call.getString("seriesId");
+        Integer seasonNumber = call.getInt("seasonNumber");
+        Integer episodeNumber = call.getInt("episodeNumber");
+
         if (
                 streamUrl == null ||
                 streamUrl.isEmpty()
@@ -992,6 +999,30 @@ public class NativePlayerPlugin extends Plugin {
                                         "streamUrl",
                                         streamUrl
                                 );
+
+                                if (contentType != null && !contentType.isEmpty()) {
+                                    intent.putExtra("contentType", contentType);
+                                }
+
+                                if (contentId != null && !contentId.isEmpty()) {
+                                    intent.putExtra("contentId", contentId);
+                                }
+
+                                if (title != null && !title.isEmpty()) {
+                                    intent.putExtra("title", title);
+                                }
+
+                                if (seriesId != null && !seriesId.isEmpty()) {
+                                    intent.putExtra("seriesId", seriesId);
+                                }
+
+                                if (seasonNumber != null) {
+                                    intent.putExtra("seasonNumber", seasonNumber);
+                                }
+
+                                if (episodeNumber != null) {
+                                    intent.putExtra("episodeNumber", episodeNumber);
+                                }
 
                                 getActivity()
                                         .startActivity(

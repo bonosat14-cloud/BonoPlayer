@@ -14,6 +14,24 @@ type PreviewOptions = {
   scale?: number;
 };
 
+type FullscreenPlaybackOptions = {
+  streamUrl: string;
+
+  contentType?:
+    | "movie"
+    | "episode";
+
+  contentId?: string;
+
+  title?: string;
+
+  seriesId?: string;
+
+  seasonNumber?: number;
+
+  episodeNumber?: number;
+};
+
 type NativePlayerPlugin = {
   play(options: {
     streamUrl: string;
@@ -26,9 +44,10 @@ type NativePlayerPlugin = {
   /*
    * Movies / Series
    */
-  playFullscreen(options: {
-    streamUrl: string;
-  }): Promise<void>;
+  playFullscreen(
+    options:
+      FullscreenPlaybackOptions
+  ): Promise<void>;
 
   /*
    * Live TV
@@ -86,11 +105,25 @@ export async function playNativePreview(
  */
 
 export async function playNativeFullscreen(
-  streamUrl: string
+  options:
+    | string
+    | FullscreenPlaybackOptions
 ): Promise<void> {
-  await NativePlayer.playFullscreen({
-    streamUrl,
-  });
+  if (
+    typeof options ===
+    "string"
+  ) {
+    await NativePlayer.playFullscreen({
+      streamUrl:
+        options,
+    });
+
+    return;
+  }
+
+  await NativePlayer.playFullscreen(
+    options
+  );
 }
 
 /*
