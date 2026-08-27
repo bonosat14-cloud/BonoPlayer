@@ -1,6 +1,7 @@
 package com.bonoplayer.tv;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.view.TextureView;
@@ -1041,6 +1042,100 @@ public class NativePlayerPlugin extends Plugin {
                             }
                         }
                 );
+    }
+
+    /*
+     * =========================================================
+     * RESUME PROGRESS
+     * =========================================================
+     */
+
+    @PluginMethod
+    public void getResumeProgress(
+            PluginCall call
+    ) {
+        String contentType = call.getString("contentType");
+        String contentId = call.getString("contentId");
+        String seriesId = call.getString("seriesId");
+        Integer seasonNumber = call.getInt("seasonNumber");
+        Integer episodeNumber = call.getInt("episodeNumber");
+
+        if (
+                contentType == null ||
+                contentType.trim().isEmpty() ||
+                contentId == null ||
+                contentId.trim().isEmpty()
+        ) {
+            call.reject("contentType and contentId are required");
+            return;
+        }
+
+        String resumeKey;
+
+        if ("movie".equals(contentType)) {
+            resumeKey = "movie_" + contentId.trim();
+
+        } else if ("episode".equals(contentType)) {
+            StringBuilder key = new StringBuilder("episode_");
+
+            if (seriesId != null && !seriesId.trim().isEmpty()) {
+                key.append(seriesId.trim()).append("_");
+            }
+
+            if (seasonNumber != null && seasonNumber >= 0) {
+                key.append("s").append(seasonNumber).append("_");
+            }
+
+            if (episodeNumber != null && episodeNumber >= 0) {
+                key.append("e").append(episodeNumber).append("_");
+            }
+
+            key.append(contentId.trim());
+            resumeKey = key.toString();
+
+        } else {
+            call.reject("Unsupported contentType");
+            return;
+        }
+
+        SharedPreferences preferences =
+                getContext().getSharedPreferences(
+                        "bonoplayer_resume",
+                        android.content.Context.MODE_PRIVATE
+                );
+
+        long position =
+                preferences.getLong(
+                        resumeKey + "_position",
+                        0L
+                );
+
+        long duration =
+                preferences.getLong(
+                        resumeKey + "_duration",
+                        0L
+                );
+
+        com.getcapacitor.JSObject result =
+                new com.getcapacitor.JSObject();
+
+        result.put(
+                "hasResume",
+                position >= 30_000L &&
+                        duration > 0L &&
+                        position < (long) (duration * 0.95f)
+        );
+
+        result.put("position", position);
+        result.put("duration", duration);
+        result.put(
+                "progress",
+                duration > 0L
+                        ? (double) position / (double) duration
+                        : 0.0
+        );
+
+        call.resolve(result);
     }
 
     /*

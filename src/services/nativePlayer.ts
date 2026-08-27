@@ -32,6 +32,30 @@ type FullscreenPlaybackOptions = {
   episodeNumber?: number;
 };
 
+export type ResumeProgressOptions = {
+  contentType:
+    | "movie"
+    | "episode";
+
+  contentId: string;
+
+  seriesId?: string;
+
+  seasonNumber?: number;
+
+  episodeNumber?: number;
+};
+
+export type ResumeProgress = {
+  hasResume: boolean;
+
+  position: number;
+
+  duration: number;
+
+  progress: number;
+};
+
 type NativePlayerPlugin = {
   play(options: {
     streamUrl: string;
@@ -48,6 +72,14 @@ type NativePlayerPlugin = {
     options:
       FullscreenPlaybackOptions
   ): Promise<void>;
+
+  /*
+   * Resume / Continue Watching
+   */
+  getResumeProgress(
+    options:
+      ResumeProgressOptions
+  ): Promise<ResumeProgress>;
 
   /*
    * Live TV
@@ -128,6 +160,21 @@ export async function playNativeFullscreen(
 
 /*
  * =========================================================
+ * RESUME / CONTINUE WATCHING
+ * =========================================================
+ */
+
+export async function getNativeResumeProgress(
+  options:
+    ResumeProgressOptions
+): Promise<ResumeProgress> {
+  return NativePlayer.getResumeProgress(
+    options
+  );
+}
+
+/*
+ * =========================================================
  * LIVE TV
  * =========================================================
  */
@@ -183,3 +230,4 @@ export async function exitNativeApp():
 Promise<void> {
   await NativePlayer.exitApp();
 }
+

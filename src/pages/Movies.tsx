@@ -7,8 +7,13 @@ import {
 } from "react";
 
 import {
+  getNativeResumeProgress,
   openNativeYouTube,
   playNativeFullscreen,
+} from "../services/nativePlayer";
+
+import type {
+  ResumeProgress,
 } from "../services/nativePlayer";
 
 import {
@@ -37,6 +42,53 @@ type FocusArea =
 
 const MOVIES_PER_ROW = 5;
 const MOVIE_WINDOW_ROWS = 3;
+
+function formatResumeTime(
+  milliseconds: number
+): string {
+  const totalSeconds =
+    Math.max(
+      0,
+      Math.floor(
+        milliseconds / 1000
+      )
+    );
+
+  const hours =
+    Math.floor(
+      totalSeconds / 3600
+    );
+
+  const minutes =
+    Math.floor(
+      (totalSeconds % 3600) /
+        60
+    );
+
+  const seconds =
+    totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(
+      minutes
+    ).padStart(
+      2,
+      "0"
+    )}:${String(
+      seconds
+    ).padStart(
+      2,
+      "0"
+    )}`;
+  }
+
+  return `${minutes}:${String(
+    seconds
+  ).padStart(
+    2,
+    "0"
+  )}`;
+}
 
 
 
@@ -122,6 +174,13 @@ function Movies({
     detailsAction,
     setDetailsAction,
   ] = useState<0 | 1>(0);
+
+  const [
+    movieResume,
+    setMovieResume,
+  ] = useState<ResumeProgress | null>(
+    null
+  );
 
   /*
    * =========================================================
@@ -491,7 +550,31 @@ function Movies({
     setMovieInfoError("");
     setMovieInfoLoading(true);
     setDetailsAction(0);
+    setMovieResume(null);
     setFocusArea("details");
+
+    void getNativeResumeProgress({
+      contentType:
+        "movie",
+
+      contentId:
+        String(movie.id),
+    })
+      .then((resume) => {
+        setMovieResume(
+          resume
+        );
+      })
+      .catch((error) => {
+        console.warn(
+          "BONO Movie resume read failed:",
+          error
+        );
+
+        setMovieResume(
+          null
+        );
+      });
 
     try {
       const info =
@@ -1317,7 +1400,12 @@ function Movies({
                   </span>
 
                   <span>
-                    PLAY
+                    {movieResume
+                      ?.hasResume
+                      ? `RESUME ${formatResumeTime(
+                          movieResume.position
+                        )}`
+                      : "PLAY"}
                   </span>
                 </button>
 

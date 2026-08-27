@@ -7,7 +7,12 @@ import {
 } from "react";
 
 import {
+  getNativeResumeProgress,
   playNativeFullscreen,
+} from "../services/nativePlayer";
+
+import type {
+  ResumeProgress,
 } from "../services/nativePlayer";
 
 import {
@@ -152,6 +157,16 @@ function Series({
     focusedEpisode,
     setFocusedEpisode,
   ] = useState(0);
+
+  const [
+    episodeResume,
+    setEpisodeResume,
+  ] = useState<
+    Record<
+      string,
+      ResumeProgress
+    >
+  >({});
 
   /*
    * =========================================================
@@ -552,6 +567,101 @@ function Series({
     SeriesEpisode[] =
     currentSeason?.episodes ??
     [];
+
+  /*
+   * =========================================================
+   * EPISODE RESUME PROGRESS
+   * =========================================================
+   */
+
+  useEffect(() => {
+    if (
+      !selectedSeries ||
+      !currentSeason ||
+      episodes.length === 0
+    ) {
+      setEpisodeResume({});
+      return;
+    }
+
+    let cancelled =
+      false;
+
+    const loadResume =
+      async () => {
+        const next:
+          Record<
+            string,
+            ResumeProgress
+          > = {};
+
+        for (
+          const episode
+          of episodes
+        ) {
+          try {
+            const resume =
+              await getNativeResumeProgress({
+                contentType:
+                  "episode",
+
+                contentId:
+                  String(
+                    episode.id
+                  ),
+
+                seriesId:
+                  String(
+                    selectedSeries.id
+                  ),
+
+                seasonNumber:
+                  currentSeason
+                    .seasonNumber,
+
+                episodeNumber:
+                  episode
+                    .episodeNumber,
+              });
+
+            if (cancelled) {
+              return;
+            }
+
+            next[
+              String(
+                episode.id
+              )
+            ] = resume;
+          } catch (
+            error
+          ) {
+            console.warn(
+              "BONO Episode resume read failed:",
+              episode.id,
+              error
+            );
+          }
+        }
+
+        if (!cancelled) {
+          setEpisodeResume(
+            next
+          );
+        }
+      };
+
+    void loadResume();
+
+    return () => {
+      cancelled =
+        true;
+    };
+  }, [
+    selectedSeries,
+    currentSeason,
+    episodes,
+  ]);
 
   /*
    * =========================================================
@@ -1751,17 +1861,42 @@ function Series({
                               }
                             </strong>
 
-                            {episode.duration && (
+                            {episodeResume[
+                              String(
+                                episode.id
+                              )
+                            ]?.hasResume ? (
                               <span>
-                                {
-                                  episode.duration
-                                }
+                                RESUME{" "}
+                                {Math.round(
+                                  episodeResume[
+                                    String(
+                                      episode.id
+                                    )
+                                  ].progress *
+                                    100
+                                )}
+                                %
                               </span>
+                            ) : (
+                              episode.duration && (
+                                <span>
+                                  {
+                                    episode.duration
+                                  }
+                                </span>
+                              )
                             )}
                           </div>
 
                           <div className="series-episode-play">
-                            ▶
+                            {episodeResume[
+                              String(
+                                episode.id
+                              )
+                            ]?.hasResume
+                              ? "▶ RESUME"
+                              : "▶"}
                           </div>
                         </div>
                       )
