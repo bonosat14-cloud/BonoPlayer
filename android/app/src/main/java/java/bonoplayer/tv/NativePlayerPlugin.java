@@ -16,6 +16,8 @@ import androidx.activity.OnBackPressedCallback;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.JSArray;
+import com.getcapacitor.JSObject;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import org.videolan.libvlc.LibVLC;
@@ -23,6 +25,10 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 @CapacitorPlugin(name = "NativePlayer")
 public class NativePlayerPlugin extends Plugin {
@@ -1136,6 +1142,277 @@ public class NativePlayerPlugin extends Plugin {
         );
 
         call.resolve(result);
+    }
+
+    /*
+     * =========================================================
+     * CONTINUE WATCHING
+     * =========================================================
+     */
+
+    @PluginMethod
+    public void getContinueWatching(
+            PluginCall call
+    ) {
+        SharedPreferences preferences =
+                getContext().getSharedPreferences(
+                        "bonoplayer_resume",
+                        android.content.Context.MODE_PRIVATE
+                );
+
+        Map<String, ?> all =
+                preferences.getAll();
+
+        ArrayList<ContinueWatchingItem> items =
+                new ArrayList<>();
+
+        for (String key : all.keySet()) {
+            if (
+                    key == null ||
+                    !key.endsWith("_position")
+            ) {
+                continue;
+            }
+
+            String resumeKey =
+                    key.substring(
+                            0,
+                            key.length() -
+                                    "_position".length()
+                    );
+
+            if (
+                    !resumeKey.startsWith("movie_") &&
+                    !resumeKey.startsWith("episode_")
+            ) {
+                continue;
+            }
+
+            long position =
+                    preferences.getLong(
+                            resumeKey + "_position",
+                            0L
+                    );
+
+            long duration =
+                    preferences.getLong(
+                            resumeKey + "_duration",
+                            0L
+                    );
+
+            if (
+                    position < 30_000L ||
+                    duration <= 0L ||
+                    position >=
+                            (long) (duration * 0.95f)
+            ) {
+                continue;
+            }
+
+            ContinueWatchingItem item =
+                    new ContinueWatchingItem();
+
+            item.resumeKey = resumeKey;
+            item.position = position;
+            item.duration = duration;
+
+            item.updatedAt =
+                    preferences.getLong(
+                            resumeKey + "_updated_at",
+                            preferences.getLong(
+                                    resumeKey + "_updatedAt",
+                                    0L
+                            )
+                    );
+
+            item.title =
+                    preferences.getString(
+                            resumeKey + "_title",
+                            ""
+                    );
+
+            if (resumeKey.startsWith("movie_")) {
+                item.contentType = "movie";
+                item.contentId =
+                        resumeKey.substring(
+                                "movie_".length()
+                        );
+            } else {
+                item.contentType = "episode";
+
+                String raw =
+                        resumeKey.substring(
+                                "episode_".length()
+                        );
+
+                String[] parts =
+                        raw.split("_");
+
+                if (parts.length >= 4) {
+                    item.seriesId = parts[0];
+
+                    try {
+                        if (parts[1].startsWith("s")) {
+                            item.seasonNumber =
+                                    Integer.parseInt(
+                                            parts[1].substring(1)
+                                    );
+                        }
+                    } catch (Exception ignored) {
+                    }
+
+                    try {
+                        if (parts[2].startsWith("e")) {
+                            item.episodeNumber =
+                                    Integer.parseInt(
+                                            parts[2].substring(1)
+                                    );
+                        }
+                    } catch (Exception ignored) {
+                    }
+
+                    StringBuilder contentId =
+                            new StringBuilder();
+
+                    for (
+                            int i = 3;
+                            i < parts.length;
+                            i++
+                    ) {
+                        if (contentId.length() > 0) {
+                            contentId.append("_");
+                        }
+
+                        contentId.append(parts[i]);
+                    }
+
+                    item.contentId =
+                            contentId.toString();
+                }
+            }
+
+            if (
+                    item.contentId == null ||
+                    item.contentId.isEmpty()
+            ) {
+                continue;
+            }
+
+            items.add(item);
+        }
+
+        Collections.sort(
+                items,
+                new Comparator<ContinueWatchingItem>() {
+                    @Override
+                    public int compare(
+                            ContinueWatchingItem left,
+                            ContinueWatchingItem right
+                    ) {
+                        return Long.compare(
+                                right.updatedAt,
+                                left.updatedAt
+                        );
+                    }
+                }
+        );
+
+        JSArray result =
+                new JSArray();
+
+        for (
+                ContinueWatchingItem item
+                : items
+        ) {
+            JSObject object =
+                    new JSObject();
+
+            object.put(
+                    "contentType",
+                    item.contentType
+            );
+
+            object.put(
+                    "contentId",
+                    item.contentId
+            );
+
+            object.put(
+                    "title",
+                    item.title != null
+                            ? item.title
+                            : ""
+            );
+
+            object.put(
+                    "position",
+                    item.position
+            );
+
+            object.put(
+                    "duration",
+                    item.duration
+            );
+
+            object.put(
+                    "progress",
+                    item.duration > 0L
+                            ? (double) item.position /
+                                    (double) item.duration
+                            : 0.0
+            );
+
+            object.put(
+                    "updatedAt",
+                    item.updatedAt
+            );
+
+            if ("episode".equals(item.contentType)) {
+                object.put(
+                        "seriesId",
+                        item.seriesId != null
+                                ? item.seriesId
+                                : ""
+                );
+
+                object.put(
+                        "seasonNumber",
+                        item.seasonNumber
+                );
+
+                object.put(
+                        "episodeNumber",
+                        item.episodeNumber
+                );
+            }
+
+            result.put(object);
+        }
+
+        JSObject response =
+                new JSObject();
+
+        response.put(
+                "items",
+                result
+        );
+
+        call.resolve(response);
+    }
+
+    private static class ContinueWatchingItem {
+        String resumeKey;
+        String contentType;
+        String contentId;
+        String title;
+        String seriesId;
+
+        int seasonNumber = -1;
+        int episodeNumber = -1;
+
+        long position = 0L;
+        long duration = 0L;
+        long updatedAt = 0L;
     }
 
     /*

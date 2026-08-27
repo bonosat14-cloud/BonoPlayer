@@ -6,13 +6,16 @@ import {
   useState,
 } from "react";
 
+
 import {
+  getNativeContinueWatching,
   getNativeResumeProgress,
   openNativeYouTube,
   playNativeFullscreen,
 } from "../services/nativePlayer";
 
 import type {
+  ContinueWatchingItem,
   ResumeProgress,
 } from "../services/nativePlayer";
 
@@ -182,6 +185,13 @@ function Movies({
     null
   );
 
+  const [
+    continueWatching,
+    setContinueWatching,
+  ] = useState<
+    ContinueWatchingItem[]
+  >([]);
+
   /*
    * =========================================================
    * LOAD MOVIES
@@ -223,6 +233,75 @@ function Movies({
 
   /*
    * =========================================================
+   * CONTINUE WATCHING
+   * =========================================================
+   */
+
+  useEffect(() => {
+    const loadContinueWatching =
+      async () => {
+        try {
+          const items =
+            await getNativeContinueWatching();
+
+          setContinueWatching(
+            items.filter(
+              (item) =>
+                item.contentType ===
+                "movie"
+            )
+          );
+        } catch (error) {
+          console.warn(
+            "BONO Continue Watching load failed:",
+            error
+          );
+
+          setContinueWatching([]);
+        }
+      };
+
+    void loadContinueWatching();
+  }, []);
+
+  const continueWatchingMovies =
+    useMemo(() => {
+      return continueWatching
+        .map((resume) => {
+          const movie =
+            movies.find(
+              (item) =>
+                String(item.id) ===
+                resume.contentId
+            );
+
+          if (!movie) {
+            return null;
+          }
+
+          return {
+            movie,
+            resume,
+          };
+        })
+        .filter(
+          (
+            item
+          ): item is {
+            movie: MovieItem;
+            resume:
+              ContinueWatchingItem;
+          } =>
+            item !== null
+        )
+        .slice(0, 5);
+    }, [
+      continueWatching,
+      movies,
+    ]);
+
+  /*
+   * =========================================================
    * INITIAL FOCUS
    * =========================================================
    */
@@ -243,6 +322,12 @@ function Movies({
         {
           category_id: "all",
           category_name: "All",
+        },
+        {
+          category_id:
+            "continue_watching",
+          category_name:
+            "Continue Watching",
         },
         ...movieCategories,
       ],
@@ -285,6 +370,13 @@ function Movies({
         "all"
       ) {
         return movies.length;
+      }
+
+      if (
+        categoryId ===
+        "continue_watching"
+      ) {
+        return continueWatchingMovies.length;
       }
 
       return (
@@ -374,23 +466,46 @@ function Movies({
         );
       }
 
-      /*
-       * ALL
-       */
-      if (
-        selectedCategory === 0
-      ) {
-        return movies;
-      }
-
-      /*
-       * SELECTED CATEGORY
-       */
       const categoryId =
         categories[
           selectedCategory
         ]?.category_id;
 
+      /*
+       * ALL
+       */
+      if (
+        categoryId === "all"
+      ) {
+        return movies;
+      }
+
+      /*
+       * CONTINUE WATCHING
+       */
+      if (
+        categoryId ===
+        "continue_watching"
+      ) {
+        const resumeIds =
+          new Set(
+            continueWatchingMovies.map(
+              ({ movie }) =>
+                String(movie.id)
+            )
+          );
+
+        return movies.filter(
+          (movie) =>
+            resumeIds.has(
+              String(movie.id)
+            )
+        );
+      }
+
+      /*
+       * SELECTED CATEGORY
+       */
       return movies.filter(
         (movie) =>
           movie.categoryId ===
@@ -401,6 +516,7 @@ function Movies({
       searchQuery,
       selectedCategory,
       categories,
+      continueWatchingMovies,
     ]);
 
   /*
@@ -1544,6 +1660,59 @@ function Movies({
                         </span>
                       )}
                     </div>
+
+                    {categories[
+                      selectedCategory
+                    ]?.category_id ===
+                      "continue_watching" &&
+                      (() => {
+                        const resume =
+                          continueWatchingMovies.find(
+                            (item) =>
+                              String(
+                                item.movie.id
+                              ) ===
+                              String(movie.id)
+                          )?.resume;
+
+                        if (!resume) {
+                          return null;
+                        }
+
+                        return (
+                          <div className="movie-resume-inline">
+                            <div className="movie-resume-inline-track">
+                              <div
+                                className="movie-resume-inline-value"
+                                style={{
+                                  width:
+                                    `${Math.round(
+                                      Math.max(
+                                        0,
+                                        Math.min(
+                                          1,
+                                          resume.progress
+                                        )
+                                      ) * 100
+                                    )}%`,
+                                }}
+                              />
+                            </div>
+
+                            <span>
+                              {Math.round(
+                                Math.max(
+                                  0,
+                                  Math.min(
+                                    1,
+                                    resume.progress
+                                  )
+                                ) * 100
+                              )}%
+                            </span>
+                          </div>
+                        );
+                      })()}
 
                     <strong>
                       {movie.title}

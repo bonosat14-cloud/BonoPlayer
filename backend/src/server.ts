@@ -226,8 +226,7 @@ app.get(
             `Xtream server returned HTTP ${response.status}.`,
         });
       }
-      const info =
-  await response.json();
+     
 
       const categories =
         await response.json();

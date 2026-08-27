@@ -7,11 +7,13 @@ import {
 } from "react";
 
 import {
+  getNativeContinueWatching,
   getNativeResumeProgress,
   playNativeFullscreen,
 } from "../services/nativePlayer";
 
 import type {
+  ContinueWatchingItem,
   ResumeProgress,
 } from "../services/nativePlayer";
 
@@ -168,6 +170,13 @@ function Series({
     >
   >({});
 
+  const [
+    continueWatching,
+    setContinueWatching,
+  ] = useState<
+    ContinueWatchingItem[]
+  >([]);
+
   /*
    * =========================================================
    * LOAD SERIES
@@ -216,6 +225,65 @@ function Series({
 
   /*
    * =========================================================
+   * CONTINUE WATCHING - SERIES
+   * =========================================================
+   */
+
+  useEffect(() => {
+    const loadContinueWatching =
+      async () => {
+        try {
+          const items =
+            await getNativeContinueWatching();
+
+          setContinueWatching(
+            items.filter(
+              (item) =>
+                item.contentType ===
+                  "episode" &&
+                Boolean(item.seriesId)
+            )
+          );
+        } catch (error) {
+          console.warn(
+            "BONO Series Continue Watching load failed:",
+            error
+          );
+
+          setContinueWatching([]);
+        }
+      };
+
+    void loadContinueWatching();
+  }, []);
+
+  const continueWatchingSeriesIds =
+    useMemo(() => {
+      return new Set(
+        continueWatching
+          .map((item) =>
+            String(
+              item.seriesId ?? ""
+            )
+          )
+          .filter(Boolean)
+      );
+    }, [continueWatching]);
+
+  const continueWatchingSeriesCount =
+    useMemo(() => {
+      return series.filter((item) =>
+        continueWatchingSeriesIds.has(
+          String(item.id)
+        )
+      ).length;
+    }, [
+      series,
+      continueWatchingSeriesIds,
+    ]);
+
+  /*
+   * =========================================================
    * INITIAL FOCUS
    * =========================================================
    */
@@ -236,6 +304,12 @@ function Series({
         {
           category_id: "all",
           category_name: "All",
+        },
+        {
+          category_id:
+            "continue-watching",
+          category_name:
+            "Continue Watching",
         },
         ...seriesCategories,
       ],
@@ -396,6 +470,23 @@ function Series({
         return series;
       }
 
+      const selectedCategoryId =
+        categories[
+          selectedCategory
+        ]?.category_id;
+
+      if (
+        selectedCategoryId ===
+        "continue-watching"
+      ) {
+        return series.filter(
+          (item) =>
+            continueWatchingSeriesIds.has(
+              String(item.id)
+            )
+        );
+      }
+
       const categoryId =
         categories[
           selectedCategory
@@ -411,6 +502,7 @@ function Series({
       searchQuery,
       selectedCategory,
       categories,
+      continueWatchingSeriesIds,
     ]);
 
   /*
@@ -1951,11 +2043,14 @@ function Series({
   {category.category_id ===
   "all"
     ? series.length
-    : seriesCountByCategory.get(
-        String(
-          category.category_id
-        )
-      ) ?? 0}
+    : category.category_id ===
+        "continue-watching"
+      ? continueWatchingSeriesCount
+      : seriesCountByCategory.get(
+          String(
+            category.category_id
+          )
+        ) ?? 0}
 </span>
               </div>
             )

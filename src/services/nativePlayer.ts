@@ -56,6 +56,35 @@ export type ResumeProgress = {
   progress: number;
 };
 
+export type ContinueWatchingItem = {
+  contentType:
+    | "movie"
+    | "episode";
+
+  contentId: string;
+
+  title: string;
+
+  position: number;
+
+  duration: number;
+
+  progress: number;
+
+  updatedAt: number;
+
+  seriesId?: string;
+
+  seasonNumber?: number;
+
+  episodeNumber?: number;
+};
+
+type ContinueWatchingResponse = {
+  items:
+    ContinueWatchingItem[];
+};
+
 type NativePlayerPlugin = {
   play(options: {
     streamUrl: string;
@@ -80,6 +109,11 @@ type NativePlayerPlugin = {
     options:
       ResumeProgressOptions
   ): Promise<ResumeProgress>;
+
+  getContinueWatching():
+    Promise<
+      ContinueWatchingResponse
+    >;
 
   /*
    * Live TV
@@ -173,6 +207,15 @@ export async function getNativeResumeProgress(
   );
 }
 
+export async function getNativeContinueWatching():
+Promise<ContinueWatchingItem[]> {
+  const response =
+    await NativePlayer
+      .getContinueWatching();
+
+  return response.items ?? [];
+}
+
 /*
  * =========================================================
  * LIVE TV
@@ -230,4 +273,3 @@ export async function exitNativeApp():
 Promise<void> {
   await NativePlayer.exitApp();
 }
-
