@@ -228,6 +228,33 @@ function Series({
         seriesCategories,
       ]
     );
+    const seriesCountByCategory =
+  useMemo(() => {
+    const counts =
+      new Map<
+        string,
+        number
+      >();
+
+    for (
+      const item of series
+    ) {
+      const categoryId =
+        String(
+          item.categoryId ??
+            ""
+        );
+
+      counts.set(
+        categoryId,
+        (counts.get(
+          categoryId
+        ) ?? 0) + 1
+      );
+    }
+
+    return counts;
+  }, [series]);
 
   /*
    * =========================================================
@@ -796,8 +823,19 @@ function Series({
     ) {
       if (enter) {
         event.preventDefault();
+        
+        console.log(
+  "BONO DETAILS OK:",
+  {
+    focusArea,
+    seasonsCount:
+      seasons.length,
+    selectedSeriesId:
+      selectedSeries?.id,
+  }
+);
 
-        if (
+        if
           seasons.length >
           0
         ) {
@@ -899,7 +937,6 @@ function Series({
         enter
       ) {
         event.preventDefault();
-
         if (
           seasons.length ===
           0
@@ -1745,9 +1782,20 @@ function Series({
                     : ""
                 }`}
               >
-                {
-                  category.category_name
-                }
+                <span className="series-category-name">
+  {category.category_name}
+</span>
+
+<span className="series-category-count">
+  {category.category_id ===
+  "all"
+    ? series.length
+    : seriesCountByCategory.get(
+        String(
+          category.category_id
+        )
+      ) ?? 0}
+</span>
               </div>
             )
           )}
