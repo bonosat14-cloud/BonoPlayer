@@ -10,7 +10,12 @@ import type {
 } from "../services/m3uParser";
 
 import {
+  getDevicePlaylists,
   getLiveChannels,
+} from "../services/xtreamService";
+
+import type {
+  DevicePlaylist,
 } from "../services/xtreamService";
 
 import {
@@ -108,6 +113,26 @@ function LiveTV({
     useState<
       ParsedChannel[]
     >([]);
+
+  const [
+  devicePlaylists,
+  setDevicePlaylists,
+] =
+  useState<
+    DevicePlaylist[]
+  >([]);
+
+const [
+  selectedPlaylistIndex,
+  setSelectedPlaylistIndex,
+] =
+  useState(0);
+
+const selectedPlaylist =
+  devicePlaylists[
+    selectedPlaylistIndex
+  ] ?? null;
+
 
   const [
     focusedCategory,
@@ -614,43 +639,157 @@ function LiveTV({
   ]);
 
   /*
-   * =========================================================
-   * LOAD CHANNELS
-   * =========================================================
-   */
+ * =========================================================
+ * LOAD PLAYLISTS
+ * =========================================================
+ */
 
-  useEffect(() => {
-    const loadXtreamChannels =
-      async () => {
-        try {
-          const loadedChannels =
-            await getLiveChannels(
-              "326498"
-            );
+useEffect(() => {
+  let cancelled = false;
 
-          console.log(
-            `BONO Xtream loaded: ${loadedChannels.length} channels`
+  const loadPlaylists =
+    async () => {
+      try {
+        const playlists =
+          await getDevicePlaylists(
+            "326498"
           );
 
-          setPlaylistChannels(
-            loadedChannels
-          );
-        } catch (
+        if (cancelled) {
+          return;
+        }
+
+        console.log(
+          `BONO playlists loaded: ${playlists.length}`
+        );
+
+        setDevicePlaylists(
+          playlists
+        );
+
+        /*
+         * نبدأ بـ Xtream افتراضيًا.
+         * في حالتنا Neo 4K.
+         */
+        const savedPlaylistId =
+  localStorage.getItem(
+    "bonoplayer_selected_playlist"
+  );
+
+const savedIndex =
+  playlists.findIndex(
+    (playlist) =>
+      playlist.id ===
+      savedPlaylistId
+  );
+
+setSelectedPlaylistIndex(
+  savedIndex >= 0
+    ? savedIndex
+    : 0
+);
+      } catch (error) {
+        console.error(
+          "BONO playlists load failed:",
           error
-        ) {
-          console.error(
-            "BONO Xtream load failed:",
-            error
+        );
+
+        if (!cancelled) {
+          setDevicePlaylists(
+            []
+          );
+        }
+      }
+    };
+
+  void loadPlaylists();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+/*
+ * =========================================================
+ * LOAD SELECTED PLAYLIST CHANNELS
+ * =========================================================
+ */
+
+useEffect(() => {
+  if (!selectedPlaylist) {
+    return;
+  }
+
+  let cancelled = false;
+
+  const loadChannels =
+    async () => {
+      try {
+        /*
+         * نوقف Preview القديم قبل
+         * الانتقال إلى Playlist أخرى.
+         */
+        previewChannelIdRef.current =
+          null;
+
+        await stopNativePreview();
+
+        const loadedChannels =
+          await getLiveChannels(
+            "326498",
+            selectedPlaylist
           );
 
+        if (cancelled) {
+          return;
+        }
+
+        console.log(
+          `BONO ${selectedPlaylist.name} loaded: ${loadedChannels.length} channels`
+        );
+
+        setPlaylistChannels(
+          loadedChannels
+        );
+
+        setFocusedCategory(
+          0
+        );
+
+        setSelectedCategory(
+          0
+        );
+
+        setSelectedChannel(
+          0
+        );
+
+        setSearchQuery(
+          ""
+        );
+      } catch (error) {
+        console.error(
+          `BONO ${selectedPlaylist.name} load failed:`,
+          error
+        );
+
+        if (!cancelled) {
           setPlaylistChannels(
             []
           );
         }
-      };
+      }
+    };
 
-    void loadXtreamChannels();
-  }, []);
+  void loadChannels();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  selectedPlaylist,
+]);
+
 
   /*
    * =========================================================
@@ -907,6 +1046,37 @@ function LiveTV({
 
       previewChannelIdRef.current =
         channel.id;
+      
+      
+/*
+ * TEMP TEST:
+ * Print Lynx channel information
+ * before sending it to VLC.
+ */
+console.log(
+  "BONO TEST CHANNEL:",
+  channel.name
+);
+
+console.log(
+  "BONO TEST URL:",
+  channel.streamUrl
+);
+
+console.log(
+  "BONO TEST ID:",
+  channel.id
+);
+
+console.log(
+  "BONO TEST EPG:",
+  channel.epgId
+);
+
+console.log(
+  "BONO TEST CATEGORY:",
+  channel.category
+);
 
       try {
         await stopNativePreview();

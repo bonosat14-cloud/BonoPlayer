@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 
@@ -391,8 +392,17 @@ public class NativePlayerPlugin extends Plugin {
 
                                 previewPlayer.play();
 
-                                liveFullscreen =
-                                        false;
+/*
+ * Keep Android TV awake while Live TV is playing.
+ */
+getActivity()
+        .getWindow()
+        .addFlags(
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        );
+
+liveFullscreen =
+        false;
 
                                 liveAnimating =
                                         false;
@@ -890,6 +900,19 @@ public class NativePlayerPlugin extends Plugin {
 
         liveAnimating =
                 false;
+
+        /*
+ * Allow Android TV power saving again
+ * after Live TV has stopped.
+ */
+if (getActivity() != null) {
+    getActivity()
+            .getWindow()
+            .clearFlags(
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            );
+}
+
 
         if (
                 previewPlayer !=

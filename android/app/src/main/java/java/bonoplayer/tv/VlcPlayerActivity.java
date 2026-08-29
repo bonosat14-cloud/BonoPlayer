@@ -183,11 +183,19 @@ public class VlcPlayerActivity extends AppCompatActivity {
         }
 
         getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-        );
+        WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        WindowManager.LayoutParams.FLAG_FULLSCREEN
+);
 
-        applyImmersiveMode();
+/*
+ * Keep Android TV awake while video is playing.
+ * Prevent screen saver / power saving during playback.
+ */
+getWindow().addFlags(
+        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+);
+
+applyImmersiveMode();
 
         /*
          * =====================================================

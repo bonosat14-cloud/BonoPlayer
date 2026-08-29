@@ -11,11 +11,51 @@ import type {
 } from "./m3uParser";
 
 /*
- * نستخدم Cache جديدًا حتى لا نرجع
- * إلى القنوات القديمة التي لا تحتوي epgId.
+ * =========================================================
+ * PLAYLISTS
+ * =========================================================
  */
+
+export type DevicePlaylist = {
+  id: string;
+
+  name: string;
+
+  type:
+    | "xtream"
+    | "m3u";
+};
+
+type PlaylistsResponse = {
+  ok: boolean;
+
+  playlists?:
+    DevicePlaylist[];
+
+  message?: string;
+};
+
+type M3uChannelsResponse = {
+  ok: boolean;
+
+  playlistName?: string;
+
+  channelCount?: number;
+
+  channels?:
+    ParsedChannel[];
+
+  message?: string;
+};
+
+/*
+ * =========================================================
+ * CACHE
+ * =========================================================
+ */
+
 const DB_NAME =
-  "bonoplayer-live-cache-v2";
+  "bonoplayer-live-cache-v3";
 
 const DB_VERSION = 1;
 
@@ -69,7 +109,11 @@ type StreamsResponse = {
 };
 
 type LiveChannelsCache = {
+  cacheKey: string;
+
   deviceId: string;
+
+  playlistId: string;
 
   updatedAt: number;
 
@@ -82,6 +126,16 @@ type LiveChannelsCache = {
  * INDEXED DB
  * =========================================================
  */
+
+function makeCacheKey(
+  deviceId: string,
+  playlistId: string
+): string {
+  return (
+    `${deviceId}:` +
+    `${playlistId}`
+  );
+}
 
 function openCacheDb():
 Promise<IDBDatabase> {
@@ -111,7 +165,7 @@ Promise<IDBDatabase> {
               STORE_NAME,
               {
                 keyPath:
-                  "deviceId",
+                  "cacheKey",
               }
             );
           }
@@ -135,12 +189,19 @@ Promise<IDBDatabase> {
 }
 
 async function getCachedLiveChannels(
-  deviceId: string
+  deviceId: string,
+  playlistId: string
 ): Promise<
   LiveChannelsCache | null
 > {
   const db =
     await openCacheDb();
+
+  const cacheKey =
+    makeCacheKey(
+      deviceId,
+      playlistId
+    );
 
   return new Promise(
     (
@@ -160,7 +221,7 @@ async function getCachedLiveChannels(
 
       const request =
         store.get(
-          deviceId
+          cacheKey
         );
 
       request.onsuccess =
@@ -185,7 +246,8 @@ async function getCachedLiveChannels(
 }
 
 async function saveCachedLiveChannels(
-  cache: LiveChannelsCache
+  cache:
+    LiveChannelsCache
 ): Promise<void> {
   const db =
     await openCacheDb();
@@ -225,7 +287,43 @@ async function saveCachedLiveChannels(
 
 /*
  * =========================================================
- * NETWORK - CATEGORIES
+ * DEVICE PLAYLISTS
+ * =========================================================
+ */
+
+export async function getDevicePlaylists(
+  deviceId: string
+): Promise<
+  DevicePlaylist[]
+> {
+  const response =
+    await CapacitorHttp.get({
+      url:
+        `${API_BASE_URL}` +
+        `/api/device/${deviceId}` +
+        `/playlists`,
+    });
+
+  const data =
+    response.data as
+      PlaylistsResponse;
+
+  if (
+    !data.ok ||
+    !data.playlists
+  ) {
+    throw new Error(
+      data.message ??
+        "Unable to load playlists."
+    );
+  }
+
+  return data.playlists;
+}
+
+/*
+ * =========================================================
+ * XTREAM - CATEGORIES
  * =========================================================
  */
 
@@ -261,11 +359,11 @@ export async function getLiveCategories(
 
 /*
  * =========================================================
- * NETWORK - CHANNELS
+ * XTREAM - CHANNELS
  * =========================================================
  */
 
-async function fetchLiveChannelsFromNetwork(
+async function fetchXtreamChannels(
   deviceId: string
 ): Promise<
   ParsedChannel[]
@@ -319,9 +417,6 @@ async function fetchLiveChannelsFromNetwork(
         undefined;
 
       return {
-        /*
-         * stream_id يبقى ID التشغيل.
-         */
         id:
           String(
             stream.stream_id
@@ -345,12 +440,101 @@ async function fetchLiveChannelsFromNetwork(
           `/live/play/` +
           `${stream.stream_id}`,
 
-        /*
-         * هذا هو مفتاح XMLTV الحقيقي.
-         */
         epgId,
       };
     }
+  );
+}
+
+/*
+ * =========================================================
+ * M3U - CHANNELS
+ * =========================================================
+ */
+
+async function fetchM3uChannels(
+  deviceId: string,
+  playlistId: string
+): Promise<
+  ParsedChannel[]
+> {
+  const response =
+    await CapacitorHttp.get({
+      url:
+        `${API_BASE_URL}` +
+        `/api/device/${deviceId}` +
+        `/m3u/live` +
+        `?playlistId=${encodeURIComponent(
+          playlistId
+        )}`,
+    });
+
+  const data =
+    response.data as
+      M3uChannelsResponse;
+
+  if (
+    !data.ok ||
+    !data.channels
+  ) {
+    throw new Error(
+      data.message ??
+        "Unable to load M3U channels."
+    );
+  }
+
+  return data.channels.map(
+    (channel) => ({
+      ...channel,
+
+      streamUrl:
+        channel.streamUrl
+          .startsWith(
+            "http://"
+          ) ||
+        channel.streamUrl
+          .startsWith(
+            "https://"
+          )
+          ? channel.streamUrl
+          : `${API_BASE_URL}${channel.streamUrl}`,
+    })
+  );
+}
+
+/*
+ * =========================================================
+ * NETWORK DISPATCHER
+ * =========================================================
+ */
+
+async function fetchLiveChannelsFromNetwork(
+  deviceId: string,
+  playlist:
+    DevicePlaylist
+): Promise<
+  ParsedChannel[]
+> {
+  if (
+    playlist.type ===
+    "m3u"
+  ) {
+    console.log(
+      `BONO loading M3U playlist: ${playlist.name}`
+    );
+
+    return fetchM3uChannels(
+      deviceId,
+      playlist.id
+    );
+  }
+
+  console.log(
+    `BONO loading Xtream playlist: ${playlist.name}`
+  );
+
+  return fetchXtreamChannels(
+    deviceId
   );
 }
 
@@ -362,10 +546,51 @@ async function fetchLiveChannelsFromNetwork(
  */
 
 export async function getLiveChannels(
-  deviceId: string
+  deviceId: string,
+  playlist?:
+    DevicePlaylist
 ): Promise<
   ParsedChannel[]
 > {
+  /*
+   * Backward compatibility:
+   *
+   * LiveTV القديم كان يستعمل:
+   * getLiveChannels("326498")
+   *
+   * لذلك إذا لم تصل Playlist نختار
+   * Xtream أولًا تلقائيًا.
+   */
+  let selectedPlaylist =
+    playlist;
+
+  if (!selectedPlaylist) {
+    const playlists =
+      await getDevicePlaylists(
+        deviceId
+      );
+
+    selectedPlaylist =
+      playlists.find(
+        (item) =>
+          item.type ===
+          "xtream"
+      ) ??
+      playlists[0];
+  }
+
+  if (!selectedPlaylist) {
+    throw new Error(
+      "No playlist found for this device."
+    );
+  }
+
+  const cacheKey =
+    makeCacheKey(
+      deviceId,
+      selectedPlaylist.id
+    );
+
   let cached:
     | LiveChannelsCache
     | null = null;
@@ -373,7 +598,8 @@ export async function getLiveChannels(
   try {
     cached =
       await getCachedLiveChannels(
-        deviceId
+        deviceId,
+        selectedPlaylist.id
       );
   } catch (error) {
     console.warn(
@@ -383,7 +609,7 @@ export async function getLiveChannels(
   }
 
   /*
-   * CACHE EXISTS
+   * FRESH CACHE
    */
   if (
     cached?.channels.length
@@ -392,15 +618,12 @@ export async function getLiveChannels(
       Date.now() -
       cached.updatedAt;
 
-    /*
-     * FRESH CACHE
-     */
     if (
       age <
       CACHE_MAX_AGE_MS
     ) {
       console.log(
-        `BONO cache hit: ${cached.channels.length} channels`
+        `BONO cache hit [${selectedPlaylist.name}]: ${cached.channels.length} channels`
       );
 
       return cached.channels;
@@ -410,11 +633,12 @@ export async function getLiveChannels(
      * STALE CACHE
      */
     console.log(
-      "BONO stale cache returned, refreshing..."
+      `BONO stale cache [${selectedPlaylist.name}], refreshing...`
     );
 
     void fetchLiveChannelsFromNetwork(
-      deviceId
+      deviceId,
+      selectedPlaylist
     )
       .then(
         async (
@@ -422,7 +646,12 @@ export async function getLiveChannels(
         ) => {
           await saveCachedLiveChannels(
             {
+              cacheKey,
+
               deviceId,
+
+              playlistId:
+                selectedPlaylist.id,
 
               updatedAt:
                 Date.now(),
@@ -432,14 +661,14 @@ export async function getLiveChannels(
           );
 
           console.log(
-            `BONO cache refreshed: ${channels.length} channels`
+            `BONO cache refreshed [${selectedPlaylist.name}]: ${channels.length} channels`
           );
         }
       )
       .catch(
         (error) => {
           console.error(
-            "BONO background refresh failed:",
+            `BONO background refresh failed [${selectedPlaylist.name}]:`,
             error
           );
         }
@@ -452,18 +681,24 @@ export async function getLiveChannels(
    * CACHE MISS
    */
   console.log(
-    "BONO cache miss, loading network..."
+    `BONO cache miss [${selectedPlaylist.name}], loading network...`
   );
 
   const channels =
     await fetchLiveChannelsFromNetwork(
-      deviceId
+      deviceId,
+      selectedPlaylist
     );
 
   try {
     await saveCachedLiveChannels(
       {
+        cacheKey,
+
         deviceId,
+
+        playlistId:
+          selectedPlaylist.id,
 
         updatedAt:
           Date.now(),
@@ -473,7 +708,7 @@ export async function getLiveChannels(
     );
 
     console.log(
-      `BONO cache saved: ${channels.length} channels`
+      `BONO cache saved [${selectedPlaylist.name}]: ${channels.length} channels`
     );
   } catch (error) {
     console.warn(

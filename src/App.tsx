@@ -3,15 +3,12 @@ import {
   useState,
 } from "react";
 
-import {
-  getDevicePlaylists,
-} from "./services/deviceApi";
-
 import type {
   ParsedChannel,
 } from "./services/m3uParser";
 
 import Activation from "./pages/Activation";
+import Playlists from "./pages/playlists";
 import Home from "./pages/Home";
 import LiveTV from "./pages/LiveTV";
 import Player from "./pages/player";
@@ -22,8 +19,12 @@ import {
   exitNativeApp,
 } from "./services/nativePlayer";
 
+const SELECTED_PLAYLIST_KEY =
+  "bonoplayer_selected_playlist";
+
 type Screen =
   | "activation"
+  | "playlists"
   | "home"
   | "liveTV"
   | "movies"
@@ -31,66 +32,29 @@ type Screen =
   | "player";
 
 function App() {
-  /*
-   * =========================================================
-   * BACKEND TEST
-   * =========================================================
-   */
-
-  useEffect(() => {
-    const testBackend = async () => {
-      try {
-        const result =
-          await getDevicePlaylists(
-            "326498"
-          );
-
-        console.log(
-          "BONO Backend test:",
-          result
-        );
-      } catch (error) {
-        console.error(
-          "BONO Backend connection failed:",
-          error
-        );
-      }
-    };
-
-    void testBackend();
-  }, []);
-
-  /*
-   * =========================================================
-   * ACTIVATION
-   * =========================================================
-   */
-
   const isActivated =
     localStorage.getItem(
       "bonoplayer_activation_code"
     ) !== null;
-
-  /*
-   * =========================================================
-   * SCREEN
-   * =========================================================
-   */
 
   const [
     screen,
     setScreen,
   ] = useState<Screen>(
     isActivated
-      ? "home"
+      ? "playlists"
       : "activation"
   );
 
-  /*
-   * =========================================================
-   * PLAYER STATE
-   * =========================================================
-   */
+  const [
+    selectedPlaylistId,
+    setSelectedPlaylistId,
+  ] = useState<string | null>(
+    () =>
+      localStorage.getItem(
+        SELECTED_PLAYLIST_KEY
+      )
+  );
 
   const [
     selectedChannel,
@@ -105,72 +69,33 @@ function App() {
       null
     );
 
-  /*
-   * =========================================================
-   * ANDROID BACK
-   * =========================================================
-   */
-
   useEffect(() => {
     const handleBonoBack = () => {
-      /*
-       * PLAYER -> LIVE TV
-       */
       if (screen === "player") {
         setPlaylistChannel(null);
-
         setScreen("liveTV");
-
         return;
       }
 
-      /*
-       * LIVE TV -> HOME
-       */
       if (screen === "liveTV") {
         setScreen("home");
-
         return;
       }
 
-      /*
-       * MOVIES
-       *
-       * Movies.tsx manages:
-       *
-       * Full Screen
-       * -> Details
-       * -> Movies
-       * -> Categories
-       * -> Home
-       */
-      if (screen === "movies") {
+      if (
+        screen === "movies" ||
+        screen === "series"
+      ) {
         return;
       }
 
-      /*
-       * SERIES
-       *
-       * Series.tsx will manage:
-       *
-       * VLC
-       * -> Episodes
-       * -> Details
-       * -> Series Grid
-       * -> Categories
-       * -> Home
-       */
-      if (screen === "series") {
-        return;
-      }
-
-      /*
-       * HOME -> EXIT APP
-       */
       if (screen === "home") {
-        void exitNativeApp();
-
+        setScreen("playlists");
         return;
+      }
+
+      if (screen === "playlists") {
+        void exitNativeApp();
       }
     };
 
@@ -187,23 +112,47 @@ function App() {
     };
   }, [screen]);
 
-  /*
-   * =========================================================
-   * ACTIVATION SCREEN
-   * =========================================================
-   */
-
   if (
     screen === "activation"
   ) {
     return <Activation />;
   }
 
-  /*
-   * =========================================================
-   * PLAYER
-   * =========================================================
-   */
+  if (
+    screen === "playlists"
+  ) {
+    return (
+      <Playlists
+        selectedPlaylistId={
+          selectedPlaylistId
+        }
+        onSelectPlaylist={(
+          playlistId
+        ) => {
+          localStorage.setItem(
+            SELECTED_PLAYLIST_KEY,
+            playlistId
+          );
+
+          setSelectedPlaylistId(
+            playlistId
+          );
+
+          setPlaylistChannel(
+            null
+          );
+
+          setSelectedChannel(
+            0
+          );
+
+          setScreen(
+            "home"
+          );
+        }}
+      />
+    );
+  }
 
   if (
     screen === "player"
@@ -228,12 +177,6 @@ function App() {
       />
     );
   }
-
-  /*
-   * =========================================================
-   * LIVE TV
-   * =========================================================
-   */
 
   if (
     screen === "liveTV"
@@ -273,12 +216,6 @@ function App() {
     );
   }
 
-  /*
-   * =========================================================
-   * MOVIES
-   * =========================================================
-   */
-
   if (
     screen === "movies"
   ) {
@@ -291,12 +228,6 @@ function App() {
     );
   }
 
-  /*
-   * =========================================================
-   * SERIES
-   * =========================================================
-   */
-
   if (
     screen === "series"
   ) {
@@ -308,12 +239,6 @@ function App() {
       />
     );
   }
-
-  /*
-   * =========================================================
-   * HOME
-   * =========================================================
-   */
 
   return (
     <Home
