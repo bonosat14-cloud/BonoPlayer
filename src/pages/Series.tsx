@@ -9,6 +9,7 @@ import {
 import {
   getNativeContinueWatching,
   getNativeResumeProgress,
+  openNativeYouTube,
   playNativeFullscreen,
 } from "../services/nativePlayer";
 
@@ -31,6 +32,8 @@ import type {
   SeriesSeason,
 } from "../services/seriesService";
 
+import bonoLogoGold from "../assets/bono_logo_gold.png";
+
 import "./Series.css";
 
 type SeriesProps = {
@@ -42,11 +45,12 @@ type FocusArea =
   | "series"
   | "search"
   | "details"
+  | "trailer"
   | "seasons"
   | "episodes";
 
-const SERIES_PER_ROW = 5;
-const SERIES_WINDOW_ROWS = 3;
+const SERIES_PER_ROW = 4;
+const SERIES_WINDOW_ROWS = 2;
 
 const DEVICE_ID = "326498";
 
@@ -659,7 +663,44 @@ function Series({
     SeriesEpisode[] =
     currentSeason?.episodes ??
     [];
+  
+  const openSeriesTrailer =
+  async () => {
+    const trailerValue =
+      seriesInfo
+        ?.youtubeTrailer
+        ?.trim() ??
+      "";
 
+    if (!trailerValue) {
+      console.warn(
+        "BONO Series Trailer unavailable"
+      );
+
+      return;
+    }
+
+    console.log(
+      "BONO Series Trailer value:",
+      trailerValue
+    );
+
+    try {
+      await openNativeYouTube(
+        trailerValue
+      );
+
+      console.log(
+        "BONO Series YouTube launched"
+      );
+    } catch (error) {
+      console.error(
+        "BONO Series Trailer open failed:",
+        error
+      );
+    }
+  };
+     
   /*
    * =========================================================
    * EPISODE RESUME PROGRESS
@@ -866,17 +907,21 @@ function Series({
       }
 
       if (
-        focusArea ===
-        "series"
-      ) {
-        setFocusArea(
-          "categories"
-        );
+  focusArea ===
+  "series"
+) {
+  setSearchQuery("");
+  setSearchOpen(false);
+  setFocusedSeries(0);
 
-        pageRef.current?.focus();
+  setFocusArea(
+    "categories"
+  );
 
-        return;
-      }
+  pageRef.current?.focus();
+
+  return;
+}
 
       if (
         focusArea ===
@@ -1015,172 +1060,269 @@ function Series({
         "Backspace" ||
       code === 4;
 
-    /*
-     * DETAILS
-     */
+   /*
+ * =========================================================
+ * DETAILS - SEASONS BUTTON
+ * =========================================================
+ */
+
+if (
+  focusArea ===
+  "details"
+) {
+  /*
+   * OK = OPEN SEASONS
+   */
+  if (enter) {
+    event.preventDefault();
 
     if (
-      focusArea ===
-      "details"
+      seasons.length > 0
     ) {
-      if (enter) {
-        event.preventDefault();
-        
-        console.log(
-  "BONO DETAILS OK:",
-  {
-    focusArea,
-    seasonsCount:
-      seasons.length,
-    selectedSeriesId:
-      selectedSeries?.id,
+      setFocusedSeason(0);
+
+      setSelectedSeason(0);
+
+      setFocusArea(
+        "seasons"
+      );
+    }
+
+    return;
   }
-);
 
-        if (
-          seasons.length >
-          0
-        ) {
-          setFocusedSeason(
-            0
-          );
-
-          setSelectedSeason(
-            0
-          );
-
-          setFocusArea(
-            "seasons"
-          );
-        }
-
-        return;
-      }
-
-      if (
-        down ||
-        right
-      ) {
-        event.preventDefault();
-
-        if (
-          seasons.length >
-          0
-        ) {
-          setFocusedSeason(
-            0
-          );
-
-          setSelectedSeason(
-            0
-          );
-
-          setFocusArea(
-            "seasons"
-          );
-        }
-
-        return;
-      }
-
-      if (back) {
-        event.preventDefault();
-
-        handleSeriesBack();
-
-        return;
-      }
-
-      return;
-    }
-
-    /*
-     * SEASONS
-     */
+  /*
+   * LEFT = MOVE TO TRAILER
+   */
+  if (left) {
+    event.preventDefault();
 
     if (
-      focusArea ===
-      "seasons"
+      seriesInfo?.youtubeTrailer
     ) {
-      if (left) {
-        event.preventDefault();
+      setFocusArea(
+        "trailer"
+      );
+    }
 
-        setFocusedSeason(
-          (current) =>
-            Math.max(
-              0,
-              current - 1
-            )
-        );
+    return;
+  }
 
-        return;
-      }
+  /*
+   * RIGHT = DO NOTHING
+   * SEASONS IS THE RIGHT BUTTON
+   */
+  if (right) {
+    event.preventDefault();
 
-      if (right) {
-        event.preventDefault();
+    return;
+  }
 
-        setFocusedSeason(
-          (current) =>
-            Math.min(
-              Math.max(
-                0,
-                seasons.length -
-                  1
-              ),
-              current + 1
-            )
-        );
+  /*
+   * DOWN = DO NOTHING
+   */
+  if (down) {
+    event.preventDefault();
 
-        return;
-      }
+    return;
+  }
 
-      if (
-        down ||
-        enter
-      ) {
-        event.preventDefault();
-        if (
-          seasons.length ===
-          0
-        ) {
-          return;
-        }
+  /*
+   * BACK = RETURN TO SERIES
+   */
+  if (back) {
+    event.preventDefault();
 
-        setSelectedSeason(
-          focusedSeason
-        );
+    handleSeriesBack();
 
-        setFocusedEpisode(
-          0
-        );
+    return;
+  }
 
-        setFocusArea(
-          "episodes"
-        );
+  return;
+}
 
-        return;
-      }
 
-      if (up) {
-        event.preventDefault();
+/*
+ * =========================================================
+ * TRAILER BUTTON
+ * =========================================================
+ */
 
-        setFocusArea(
-          "details"
-        );
+if (
+  focusArea ===
+  "trailer"
+) {
+  /*
+   * OK = PLAY TRAILER
+   */
+  if (enter) {
+    event.preventDefault();
 
-        return;
-      }
+    openSeriesTrailer();
 
-      if (back) {
-        event.preventDefault();
+    return;
+  }
 
-        handleSeriesBack();
+  /*
+   * RIGHT = MOVE TO SEASONS BUTTON
+   */
+  if (right) {
+    event.preventDefault();
 
-        return;
-      }
+    setFocusArea(
+      "details"
+    );
 
+    return;
+  }
+
+  /*
+   * LEFT = DO NOTHING
+   * TRAILER IS THE LEFT BUTTON
+   */
+  if (left) {
+    event.preventDefault();
+
+    return;
+  }
+
+  /*
+   * DOWN = DO NOTHING
+   */
+  if (down) {
+    event.preventDefault();
+
+    return;
+  }
+
+  /*
+   * UP = DO NOTHING
+   */
+  if (up) {
+    event.preventDefault();
+
+    return;
+  }
+
+  /*
+   * BACK = RETURN FOCUS TO SEASONS
+   */
+  if (back) {
+    event.preventDefault();
+
+    setFocusArea(
+      "details"
+    );
+
+    return;
+  }
+
+  return;
+}
+
+/*
+ * =========================================================
+ * SEASONS
+ * =========================================================
+ */
+
+if (
+  focusArea ===
+  "seasons"
+) {
+  /*
+   * LEFT = PREVIOUS SEASON
+   */
+  if (left) {
+    event.preventDefault();
+
+    setFocusedSeason(
+      (current) =>
+        Math.max(
+          0,
+          current - 1
+        )
+    );
+
+    return;
+  }
+
+  /*
+   * RIGHT = NEXT SEASON
+   */
+  if (right) {
+    event.preventDefault();
+
+    setFocusedSeason(
+      (current) =>
+        Math.min(
+          Math.max(
+            0,
+            seasons.length - 1
+          ),
+          current + 1
+        )
+    );
+
+    return;
+  }
+
+  /*
+   * OK / DOWN = OPEN EPISODES
+   */
+  if (
+    enter ||
+    down
+  ) {
+    event.preventDefault();
+
+    if (
+      seasons.length === 0
+    ) {
       return;
     }
+
+    setSelectedSeason(
+      focusedSeason
+    );
+
+    setFocusedEpisode(
+      0
+    );
+
+    setFocusArea(
+      "episodes"
+    );
+
+    return;
+  }
+
+  /*
+   * UP = RETURN TO SEASONS BUTTON
+   */
+  if (up) {
+    event.preventDefault();
+
+    setFocusArea(
+      "details"
+    );
+
+    return;
+  }
+
+  /*
+   * BACK = RETURN TO DETAILS
+   */
+  if (back) {
+    event.preventDefault();
+
+    handleSeriesBack();
+
+    return;
+  }
+
+  return;
+}
 
     /*
      * EPISODES
@@ -1341,23 +1483,17 @@ function Series({
       event.preventDefault();
 
       if (
-        focusArea ===
-        "categories"
-      ) {
-        setSelectedCategory(
-          focusedCategory
-        );
+  focusArea ===
+  "categories"
+) {
+  setFocusedSeries(0);
 
-        setFocusedSeries(
-          0
-        );
+  setFocusArea(
+    "series"
+  );
 
-        setFocusArea(
-          "series"
-        );
-
-        return;
-      }
+  return;
+}
 
       if (
         focusArea ===
@@ -1539,6 +1675,10 @@ function Series({
         focusArea ===
         "categories"
       ) {
+
+setSearchQuery("");
+setSearchOpen(false);
+
         setSelectedCategory(
           focusedCategory
         );
@@ -1601,23 +1741,30 @@ function Series({
         handleKeyDown
       }
     >
-      <header className="series-header">
-        <div className="series-brand">
-          BONO
-        </div>
+     <header className="series-header">
+  <div className="series-brand">
+    <img
+      className="series-brand-logo"
+      src={bonoLogoGold}
+      alt="BONO"
+    />
+  </div>
 
-        <h1>
-          Series
-        </h1>
+  <div className="series-title">
+    <span className="series-title-icon">
+      ▰
+    </span>
 
-        <div
-          className={`series-search-button ${
-            focusArea ===
-            "search"
-              ? "is-focused"
-              : ""
-          }`}
-        >
+    <h1>SERIES</h1>
+  </div>
+
+  <div
+    className={`series-search-button ${
+      focusArea === "search"
+        ? "is-focused"
+        : ""
+    }`}
+  >
           <span className="series-search-symbol">
             ⌕
           </span>
@@ -1679,23 +1826,21 @@ function Series({
 
       {selectedSeries && (
         <section
-          className="series-details-fullscreen"
-          style={
-            seriesInfo
-              ?.backdrop
-              ? {
-                  backgroundImage:
-                    `linear-gradient(
-                      90deg,
-                      rgba(2, 7, 20, 0.96) 0%,
-                      rgba(2, 7, 20, 0.86) 42%,
-                      rgba(2, 7, 20, 0.60) 100%
-                    ),
-                    url("${seriesInfo.backdrop}")`,
-                }
-              : undefined
-          }
-        >
+  className="series-details-fullscreen"
+  style={{
+    backgroundImage: (
+      seriesInfo?.backdrop ||
+      seriesInfo?.poster ||
+      selectedSeries.poster
+    )
+      ? `url("${
+          seriesInfo?.backdrop ||
+          seriesInfo?.poster ||
+          selectedSeries.poster
+        }")`
+      : undefined,
+  }}
+>
           <div className="series-details-background-glow" />
 
           <div className="series-details-layout">
@@ -1839,23 +1984,43 @@ function Series({
                 </div>
               )}
 
-              <div
-                className={`series-open-seasons ${
-                  focusArea ===
-                  "details"
-                    ? "is-focused"
-                    : ""
-                }`}
-              >
-                SEASONS
-                <span>
-                  ›
-                </span>
-              </div>
+              <div className="series-details-actions">
+
+  {seriesInfo?.youtubeTrailer && (
+    <div
+      className={`series-trailer-button ${
+        focusArea === "trailer"
+          ? "is-focused"
+          : ""
+      }`}
+    >
+      <span className="series-trailer-icon">
+        ▶
+      </span>
+
+      TRAILER
+    </div>
+  )}
+
+  <div
+    className={`series-open-seasons ${
+      focusArea === "details"
+        ? "is-focused"
+        : ""
+    }`}
+  >
+    SEASONS
+
+    <span>
+      ›
+    </span>
+  </div>
+
+</div>
 
               <span className="series-details-hint">
-                OK Seasons • BACK Return
-              </span>
+  OK Select • LEFT/RIGHT Actions • BACK Return
+</span>
             </div>
 
           </div>
@@ -2057,76 +2222,92 @@ function Series({
           )}
         </aside>
 
-        <section className="series-grid">
-          {renderedSeries.length >
-          0 ? (
-            renderedSeries.map(
-              (
-                item,
-                index
-              ) => {
-                const actualIndex =
-                  seriesWindowStart +
-                  index;
+        <section className="series-content">
 
-                return (
-                  <div
-                    key={
-                      item.id
+  <div className="series-grid-header">
+    <h2>
+      {categories[selectedCategory]
+        ?.category_name || "All"}
+    </h2>
+
+    <span>
+      {visibleSeries.length} Series
+    </span>
+  </div>
+
+  <section className="series-grid">
+    {renderedSeries.length > 0 ? (
+      renderedSeries.map(
+        (
+          item,
+          index
+        ) => {
+          const actualIndex =
+            seriesWindowStart +
+            index;
+
+          return (
+            <div
+              key={item.id}
+              className={`series-card ${
+                focusArea ===
+                  "series" &&
+                focusedSeries ===
+                  actualIndex
+                  ? "is-focused"
+                  : ""
+              }`}
+            >
+              <div
+  className="series-poster"
+  style={
+    item.poster
+      ? {
+          backgroundImage: `url("${item.poster}")`,
+        }
+      : undefined
+  }
+>
+  {item.poster ? (
+                  <img
+                    src={
+                      item.poster
                     }
-                    className={`series-card ${
-                      focusArea ===
-                        "series" &&
-                      focusedSeries ===
-                        actualIndex
-                        ? "is-focused"
-                        : ""
-                    }`}
-                  >
-                    <div className="series-poster">
-                      {item.poster ? (
-                        <img
-                          src={
-                            item.poster
-                          }
-                          alt=""
-                          loading="lazy"
-                          className="series-poster-image"
-                        />
-                      ) : (
-                        <span>
-                          {item.title
-                            .slice(
-                              0,
-                              2
-                            )
-                            .toUpperCase()}
-                        </span>
-                      )}
-                    </div>
+                    alt=""
+                    loading="lazy"
+                    className="series-poster-image"
+                  />
+                ) : (
+                  <span>
+                    {item.title
+                      .slice(
+                        0,
+                        2
+                      )
+                      .toUpperCase()}
+                  </span>
+                )}
+              </div>
 
-                    <strong>
-                      {
-                        item.title
-                      }
-                    </strong>
+              <strong>
+                {item.title}
+              </strong>
 
-                    <span>
-                      {
-                        item.category
-                      }
-                    </span>
-                  </div>
-                );
-              }
-            )
-          ) : (
-            <div className="series-empty">
-              No series found
+              <span>
+                {item.category}
+              </span>
             </div>
-          )}
-        </section>
+          );
+        }
+      )
+    ) : (
+      <div className="series-empty">
+        No series found
+      </div>
+    )}
+  </section>
 
+</section>
       </section>
     </main>
   );

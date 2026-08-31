@@ -6,17 +6,8 @@ import {
   useState,
 } from "react";
 
-
 import {
-  getNativeContinueWatching,
-  getNativeResumeProgress,
-  openNativeYouTube,
   playNativeFullscreen,
-} from "../services/nativePlayer";
-
-import type {
-  ContinueWatchingItem,
-  ResumeProgress,
 } from "../services/nativePlayer";
 
 import {
@@ -31,6 +22,8 @@ import type {
   MovieItem,
 } from "../services/moviesService";
 
+import bonoLogoGold from "../assets/bono_logo_gold.png";
+
 import "./Movies.css";
 
 type MoviesProps = {
@@ -43,59 +36,8 @@ type FocusArea =
   | "search"
   | "details";
 
-const MOVIES_PER_ROW = 5;
-const MOVIE_WINDOW_ROWS = 3;
-
-function formatResumeTime(
-  milliseconds: number
-): string {
-  const totalSeconds =
-    Math.max(
-      0,
-      Math.floor(
-        milliseconds / 1000
-      )
-    );
-
-  const hours =
-    Math.floor(
-      totalSeconds / 3600
-    );
-
-  const minutes =
-    Math.floor(
-      (totalSeconds % 3600) /
-        60
-    );
-
-  const seconds =
-    totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${String(
-      minutes
-    ).padStart(
-      2,
-      "0"
-    )}:${String(
-      seconds
-    ).padStart(
-      2,
-      "0"
-    )}`;
-  }
-
-  return `${minutes}:${String(
-    seconds
-  ).padStart(
-    2,
-    "0"
-  )}`;
-}
-
-
-
-
+const MOVIES_PER_ROW = 4;
+const MOVIE_WINDOW_ROWS = 2;
 
 function Movies({
   onBack,
@@ -178,20 +120,6 @@ function Movies({
     setDetailsAction,
   ] = useState<0 | 1>(0);
 
-  const [
-    movieResume,
-    setMovieResume,
-  ] = useState<ResumeProgress | null>(
-    null
-  );
-
-  const [
-    continueWatching,
-    setContinueWatching,
-  ] = useState<
-    ContinueWatchingItem[]
-  >([]);
-
   /*
    * =========================================================
    * LOAD MOVIES
@@ -233,75 +161,6 @@ function Movies({
 
   /*
    * =========================================================
-   * CONTINUE WATCHING
-   * =========================================================
-   */
-
-  useEffect(() => {
-    const loadContinueWatching =
-      async () => {
-        try {
-          const items =
-            await getNativeContinueWatching();
-
-          setContinueWatching(
-            items.filter(
-              (item) =>
-                item.contentType ===
-                "movie"
-            )
-          );
-        } catch (error) {
-          console.warn(
-            "BONO Continue Watching load failed:",
-            error
-          );
-
-          setContinueWatching([]);
-        }
-      };
-
-    void loadContinueWatching();
-  }, []);
-
-  const continueWatchingMovies =
-    useMemo(() => {
-      return continueWatching
-        .map((resume) => {
-          const movie =
-            movies.find(
-              (item) =>
-                String(item.id) ===
-                resume.contentId
-            );
-
-          if (!movie) {
-            return null;
-          }
-
-          return {
-            movie,
-            resume,
-          };
-        })
-        .filter(
-          (
-            item
-          ): item is {
-            movie: MovieItem;
-            resume:
-              ContinueWatchingItem;
-          } =>
-            item !== null
-        )
-        .slice(0, 5);
-    }, [
-      continueWatching,
-      movies,
-    ]);
-
-  /*
-   * =========================================================
    * INITIAL FOCUS
    * =========================================================
    */
@@ -322,12 +181,6 @@ function Movies({
         {
           category_id: "all",
           category_name: "All",
-        },
-        {
-          category_id:
-            "continue_watching",
-          category_name:
-            "Continue Watching",
         },
         ...movieCategories,
       ],
@@ -370,13 +223,6 @@ function Movies({
         "all"
       ) {
         return movies.length;
-      }
-
-      if (
-        categoryId ===
-        "continue_watching"
-      ) {
-        return continueWatchingMovies.length;
       }
 
       return (
@@ -466,46 +312,23 @@ function Movies({
         );
       }
 
-      const categoryId =
-        categories[
-          selectedCategory
-        ]?.category_id;
-
       /*
        * ALL
        */
       if (
-        categoryId === "all"
+        selectedCategory === 0
       ) {
         return movies;
       }
 
       /*
-       * CONTINUE WATCHING
-       */
-      if (
-        categoryId ===
-        "continue_watching"
-      ) {
-        const resumeIds =
-          new Set(
-            continueWatchingMovies.map(
-              ({ movie }) =>
-                String(movie.id)
-            )
-          );
-
-        return movies.filter(
-          (movie) =>
-            resumeIds.has(
-              String(movie.id)
-            )
-        );
-      }
-
-      /*
        * SELECTED CATEGORY
        */
+      const categoryId =
+        categories[
+          selectedCategory
+        ]?.category_id;
+
       return movies.filter(
         (movie) =>
           movie.categoryId ===
@@ -516,7 +339,6 @@ function Movies({
       searchQuery,
       selectedCategory,
       categories,
-      continueWatchingMovies,
     ]);
 
   /*
@@ -546,7 +368,7 @@ function Movies({
    * =========================================================
    * MOVIE WINDOW
    *
-   * 5 columns x 3 rows = 15 movies only in DOM.
+   * 4 columns x 2 rows = 8 movies only in DOM.
    * =========================================================
    */
 
@@ -613,44 +435,58 @@ function Movies({
    * =========================================================
    */
 
-  
+  const getTrailerUrl =
+    (
+      value: string
+    ): string => {
+      const raw =
+        value.trim();
+
+      if (!raw) {
+        return "";
+      }
+
+      if (
+        raw.startsWith(
+          "http://"
+        ) ||
+        raw.startsWith(
+          "https://"
+        )
+      ) {
+        return raw;
+      }
+
+      return (
+        "https://www.youtube.com/watch?v=" +
+        encodeURIComponent(
+          raw
+        )
+      );
+    };
 
   const openTrailer =
-  async () => {
-    const trailerValue =
-      movieInfo
-        ?.youtubeTrailer
-        ?.trim() ??
-      "";
+    () => {
+      const trailerUrl =
+        getTrailerUrl(
+          movieInfo
+            ?.youtubeTrailer ??
+            ""
+        );
 
-    if (!trailerValue) {
-      console.warn(
-        "BONO Trailer unavailable"
+      if (!trailerUrl) {
+        return;
+      }
+
+      /*
+       * في Android TV سيحاول النظام فتح الرابط
+       * بالتطبيق القادر على معالجته (YouTube إن كان متوفرًا).
+       */
+      window.open(
+        trailerUrl,
+        "_blank"
       );
-
-      return;
-    }
-
-    console.log(
-      "BONO Trailer value:",
-      trailerValue
-    );
-
-    try {
-      await openNativeYouTube(
-        trailerValue
-      );
-
-      console.log(
-        "BONO YouTube launched"
-      );
-    } catch (error) {
-      console.error(
-        "BONO Trailer open failed:",
-        error
-      );
-    }
-  };
+    };
 
   /*
    * =========================================================
@@ -666,31 +502,7 @@ function Movies({
     setMovieInfoError("");
     setMovieInfoLoading(true);
     setDetailsAction(0);
-    setMovieResume(null);
     setFocusArea("details");
-
-    void getNativeResumeProgress({
-      contentType:
-        "movie",
-
-      contentId:
-        String(movie.id),
-    })
-      .then((resume) => {
-        setMovieResume(
-          resume
-        );
-      })
-      .catch((error) => {
-        console.warn(
-          "BONO Movie resume read failed:",
-          error
-        );
-
-        setMovieResume(
-          null
-        );
-      });
 
     try {
       const info =
@@ -774,16 +586,20 @@ function Movies({
       }
 
       /*
-       * MOVIES -> CATEGORIES
-       */
-      if (
-        focusArea === "movies"
-      ) {
-        setFocusArea("categories");
+ * MOVIES -> CATEGORIES
+ */
+if (
+  focusArea === "movies"
+) {
+  setSearchQuery("");
+  setSearchOpen(false);
+  setFocusedMovie(0);
 
-        pageRef.current?.focus();
-        return;
-      }
+  setFocusArea("categories");
+
+  pageRef.current?.focus();
+  return;
+}
 
       /*
        * CATEGORIES -> HOME
@@ -975,7 +791,9 @@ function Movies({
 
       if (
         focusArea ===
-        "details"
+          "details" &&
+        movieInfo
+          ?.youtubeTrailer
       ) {
         setDetailsAction(1);
         return;
@@ -985,18 +803,14 @@ function Movies({
        * CATEGORIES -> MOVIES
        */
       if (
-        focusArea === "categories"
-      ) {
-        setSelectedCategory(
-          focusedCategory
-        );
+  focusArea === "categories"
+) {
+  setFocusedMovie(0);
 
-        setFocusedMovie(0);
-        setFocusArea("movies");
+  setFocusArea("movies");
 
-        return;
-      }
-
+  return;
+}
       /*
        * MOVIES
        */
@@ -1183,36 +997,19 @@ function Movies({
       ) {
         if (
           detailsAction ===
-          0
+            1 &&
+          movieInfo
+            ?.youtubeTrailer
         ) {
-          void playNativeFullscreen({
-            streamUrl:
-              selectedMovie.streamUrl,
-
-            contentType:
-              "movie",
-
-            contentId:
-              String(
-                selectedMovie.id
-              ),
-
-            title:
-              movieInfo?.title ||
-              selectedMovie.title,
-          });
-
+          openTrailer();
           return;
         }
 
-        if (
-          detailsAction ===
-          1
-        ) {
-          void openTrailer();
+        void playNativeFullscreen(
+          selectedMovie.streamUrl
+        );
 
-          return;
-        }
+        return;
       }
 
       /*
@@ -1229,17 +1026,21 @@ function Movies({
        * CATEGORY -> MOVIES
        */
       if (
-        focusArea === "categories"
-      ) {
-        setSelectedCategory(
-          focusedCategory
-        );
+  focusArea === "categories"
+) {
+  setSearchQuery("");
+  setSearchOpen(false);
 
-        setFocusedMovie(0);
-        setFocusArea("movies");
+  setSelectedCategory(
+    focusedCategory
+  );
 
-        return;
-      }
+  setFocusedMovie(0);
+  setFocusArea("movies");
+
+  return;
+}
+
 
       /*
        * MOVIE -> DETAILS
@@ -1293,12 +1094,17 @@ function Movies({
 
       <header className="movies-header">
         <div className="movies-brand">
-          BONO
+          <img
+            className="movies-brand-logo"
+            src={bonoLogoGold}
+            alt="BONO"
+          />
         </div>
 
-        <h1>
-          Movies
-        </h1>
+        <div className="movies-title">
+          <span className="movies-title-icon">▰</span>
+          <h1>MOVIES</h1>
+        </div>
 
         <div
           className={`movies-search-button ${
@@ -1312,9 +1118,7 @@ function Movies({
           </span>
 
           <div className="movies-search-copy">
-            <span>
-              SEARCH
-            </span>
+            <span>SEARCH</span>
 
             <strong>
               {searchQuery ||
@@ -1408,8 +1212,7 @@ function Movies({
               </span>
 
               <h2>
-                {movieInfo?.title ||
-                  selectedMovie.title}
+                {selectedMovie.title}
               </h2>
 
               <div className="movie-details-badges">
@@ -1504,7 +1307,6 @@ function Movies({
               <div className="movie-details-actions">
                 <button
                   type="button"
-                  tabIndex={-1}
                   className={`movie-details-action movie-details-play ${
                     detailsAction === 0
                       ? "is-focused"
@@ -1516,19 +1318,13 @@ function Movies({
                   </span>
 
                   <span>
-                    {movieResume
-                      ?.hasResume
-                      ? `RESUME ${formatResumeTime(
-                          movieResume.position
-                        )}`
-                      : "PLAY"}
+                    PLAY
                   </span>
                 </button>
 
                 <button
                   type="button"
-                  tabIndex={-1}
-                  aria-disabled={
+                  disabled={
                     !movieInfo
                       ?.youtubeTrailer
                   }
@@ -1566,11 +1362,6 @@ function Movies({
       ===================================================== */}
 
       <section className="movies-layout">
-
-        {/* ===================================================
-            CATEGORIES
-        =================================================== */}
-
         <aside className="movies-categories">
           <div className="movies-column-title">
             Categories
@@ -1579,159 +1370,105 @@ function Movies({
           {categories.map(
             (category, index) => (
               <div
-                key={
-                  category.category_id
-                }
+                key={category.category_id}
                 ref={(element) => {
-                  categoryRefs.current[
-                    index
-                  ] = element;
+                  categoryRefs.current[index] =
+                    element;
                 }}
                 className={`movies-category ${
-                  focusArea ===
-                    "categories" &&
-                  focusedCategory ===
-                    index
+                  focusArea === "categories" &&
+                  focusedCategory === index
                     ? "is-focused"
                     : ""
                 }`}
               >
                 <span className="movies-category-name">
-                  {
-                    category.category_name
-                  }
+                  {category.category_name}
                 </span>
 
                 <strong className="movies-category-count">
-                  {
-                    getMovieCategoryCount(
-                      category.category_id
-                    )
-                  }
+                  {getMovieCategoryCount(
+                    category.category_id
+                  )}
                 </strong>
               </div>
             )
           )}
         </aside>
 
-        {/* ===================================================
-            MOVIES GRID
-        =================================================== */}
+        <section className="movies-content">
+          <div className="movies-grid-header">
+            <h2>
+              {categories[selectedCategory]
+                ?.category_name || "All"}
+            </h2>
 
-        <section className="movies-grid">
-          {renderedMovies.length >
-          0 ? (
-            renderedMovies.map(
-              (movie, index) => {
-                const actualIndex =
-                  movieWindowStart +
-                  index;
+            <span>
+              {visibleMovies.length} Movies
+            </span>
+          </div>
 
-                return (
-                  <div
-                    key={movie.id}
-                    className={`movie-card ${
-                      focusArea ===
-                        "movies" &&
-                      focusedMovie ===
-                        actualIndex
-                        ? "is-focused"
-                        : ""
-                    }`}
-                  >
-                    <div className="movie-poster">
-                      {movie.poster ? (
-                        <img
-                          src={
-                            movie.poster
-                          }
-                          alt=""
-                          loading="lazy"
-                          className="movie-poster-image"
-                        />
-                      ) : (
-                        <span>
-                          {movie.title
-                            .slice(
-                              0,
-                              2
-                            )
-                            .toUpperCase()}
-                        </span>
-                      )}
+          <section className="movies-grid">
+            {renderedMovies.length > 0 ? (
+              renderedMovies.map(
+                (movie, index) => {
+                  const actualIndex =
+                    movieWindowStart + index;
+
+                  return (
+                    <div
+                      key={movie.id}
+                      className={`movie-card ${
+                        focusArea === "movies" &&
+                        focusedMovie === actualIndex
+                          ? "is-focused"
+                          : ""
+                      }`}
+                    >
+                      <div
+  className="movie-poster"
+  style={
+    movie.poster
+      ? {
+          backgroundImage: `url("${movie.poster}")`,
+        }
+      : undefined
+  }
+>
+  {movie.poster ? (
+    <img
+      src={movie.poster}
+      alt=""
+      loading="lazy"
+      className="movie-poster-image"
+    />
+  ) : (
+                          <span>
+                            {movie.title
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+
+                      <strong className="movie-card-title">
+                        {movie.title}
+                      </strong>
+
+                      <span className="movie-card-category">
+                        {movie.category}
+                      </span>
                     </div>
-
-                    {categories[
-                      selectedCategory
-                    ]?.category_id ===
-                      "continue_watching" &&
-                      (() => {
-                        const resume =
-                          continueWatchingMovies.find(
-                            (item) =>
-                              String(
-                                item.movie.id
-                              ) ===
-                              String(movie.id)
-                          )?.resume;
-
-                        if (!resume) {
-                          return null;
-                        }
-
-                        return (
-                          <div className="movie-resume-inline">
-                            <div className="movie-resume-inline-track">
-                              <div
-                                className="movie-resume-inline-value"
-                                style={{
-                                  width:
-                                    `${Math.round(
-                                      Math.max(
-                                        0,
-                                        Math.min(
-                                          1,
-                                          resume.progress
-                                        )
-                                      ) * 100
-                                    )}%`,
-                                }}
-                              />
-                            </div>
-
-                            <span>
-                              {Math.round(
-                                Math.max(
-                                  0,
-                                  Math.min(
-                                    1,
-                                    resume.progress
-                                  )
-                                ) * 100
-                              )}%
-                            </span>
-                          </div>
-                        );
-                      })()}
-
-                    <strong>
-                      {movie.title}
-                    </strong>
-
-                    <span>
-                      {movie.category}
-                    </span>
-                  </div>
-                );
-              }
-            )
-          ) : (
-            <div className="movies-empty">
-              No movies found
-            </div>
-          )}
+                  );
+                }
+              )
+            ) : (
+              <div className="movies-empty">
+                No movies found
+              </div>
+            )}
+          </section>
         </section>
-
       </section>
     </main>
   );

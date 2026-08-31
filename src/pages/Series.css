@@ -1,53 +1,137 @@
+/* =========================================================
+   BONO SERIES
+   GOLD + BLACK TV INTERFACE
+   ========================================================= */
+
+:root {
+  --bono-gold: #d4af37;
+  --bono-gold-light: #f2d675;
+  --bono-gold-soft: rgba(212, 175, 55, 0.22);
+
+  --bono-black: #050505;
+  --bono-panel: rgba(12, 12, 12, 0.94);
+  --bono-panel-soft: rgba(18, 18, 18, 0.88);
+
+  --bono-text: #ffffff;
+  --bono-muted: rgba(255, 255, 255, 0.55);
+}
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
 .series-page {
   width: 100vw;
   height: 100vh;
 
   overflow: hidden;
 
-  color: #ffffff;
+  color: var(--bono-text);
 
   background:
+    radial-gradient(
+      circle at 50% -15%,
+      rgba(212, 175, 55, 0.09),
+      transparent 38%
+    ),
     linear-gradient(
-      135deg,
-      #07142f,
-      #111b49 55%,
-      #261343
+      180deg,
+      #080808 0%,
+      #040404 52%,
+      #000000 100%
     );
 
   outline: none;
 }
+
 
 /* =========================================================
    HEADER
    ========================================================= */
 
 .series-header {
-  height: 72px;
+  height: 68px;
 
-  padding: 0 42px;
+  padding: 0 30px;
+
+  box-sizing: border-box;
 
   display: flex;
   align-items: center;
 
-  gap: 28px;
+  gap: 20px;
 
   border-bottom:
-    1px solid
-      rgba(255, 255, 255, 0.06);
+    1px solid rgba(212, 175, 55, 0.14);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15, 15, 15, 0.98),
+      rgba(5, 5, 5, 0.92)
+    );
 }
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
 
 .series-brand {
-  font-size: 28px;
-  font-weight: 900;
+  width: 108px;
 
-  letter-spacing: 4px;
+  display: flex;
+  align-items: center;
+
+  flex-shrink: 0;
 }
 
-.series-header h1 {
+.series-brand-logo {
+  display: block;
+
+  width: 100%;
+  max-width: 108px;
+  max-height: 45px;
+
+  object-fit: contain;
+}
+
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.series-title {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.series-title-icon {
+  color: var(--bono-gold);
+
+  font-size: 18px;
+
+  transform: rotate(-8deg);
+}
+
+.series-title h1 {
   margin: 0;
 
-  font-size: 22px;
+  color: var(--bono-gold);
+
+  font-size: 19px;
+  font-weight: 900;
+
+  letter-spacing: 2px;
+
+  text-shadow:
+    0 0 14px
+    rgba(212, 175, 55, 0.18);
 }
+
 
 /* =========================================================
    SEARCH BUTTON
@@ -56,46 +140,48 @@
 .series-search-button {
   margin-left: auto;
 
-  width: 210px;
-  height: 48px;
+  width: 215px;
+  height: 43px;
 
   padding: 0 14px;
 
   display: flex;
   align-items: center;
 
-  gap: 11px;
+  gap: 10px;
 
   box-sizing: border-box;
 
   border:
-    2px solid transparent;
+    2px solid rgba(212, 175, 55, 0.12);
 
-  border-radius: 11px;
+  border-radius: 9px;
 
   background:
-    rgba(255, 255, 255, 0.07);
+    rgba(255, 255, 255, 0.045);
 
   color: #ffffff;
 }
 
 .series-search-button.is-focused {
-  border-color: #ffffff;
+  border-color: var(--bono-gold-light);
 
   background:
     linear-gradient(
       135deg,
-      rgba(48, 124, 255, 0.55),
-      rgba(105, 61, 210, 0.48)
+      rgba(212, 175, 55, 0.22),
+      rgba(98, 74, 14, 0.18)
     );
 
   box-shadow:
-    0 0 0 4px
-      rgba(255, 255, 255, 0.08);
+    inset 0 0 0 1px rgba(242, 214, 117, 0.30),
+    0 0 18px rgba(212, 175, 55, 0.24);
 }
 
 .series-search-symbol {
-  font-size: 24px;
+  color: var(--bono-gold);
+
+  font-size: 23px;
 }
 
 .series-search-copy {
@@ -104,20 +190,21 @@
   display: flex;
   flex-direction: column;
 
-  gap: 2px;
+  gap: 1px;
 }
 
 .series-search-copy span {
-  color:
-    rgba(255, 255, 255, 0.48);
+  color: rgba(242, 214, 117, 0.65);
 
   font-size: 7px;
-  font-weight: 800;
+  font-weight: 900;
 
   letter-spacing: 1.2px;
 }
 
 .series-search-copy strong {
+  color: #ffffff;
+
   font-size: 11px;
 
   white-space: nowrap;
@@ -127,6 +214,7 @@
   text-overflow: ellipsis;
 }
 
+
 /* =========================================================
    SEARCH OVERLAY
    ========================================================= */
@@ -134,18 +222,18 @@
 .series-search-overlay {
   position: absolute;
 
-  top: 82px;
+  top: 76px;
   left: 50%;
 
-  transform:
-    translateX(-50%);
+  transform: translateX(-50%);
 
   z-index: 150;
 
-  width: min(
-    620px,
-    calc(100vw - 80px)
-  );
+  width:
+    min(
+      620px,
+      calc(100vw - 80px)
+    );
 }
 
 .series-search-box {
@@ -161,22 +249,20 @@
   box-sizing: border-box;
 
   border:
-    1px solid
-      rgba(255, 255, 255, 0.14);
+    1px solid rgba(212, 175, 55, 0.40);
 
-  border-radius: 12px;
+  border-radius: 11px;
 
   background:
-    rgba(5, 12, 36, 0.97);
+    rgba(7, 7, 7, 0.98);
 
   box-shadow:
-    0 18px 50px
-      rgba(0, 0, 0, 0.4);
+    0 20px 55px rgba(0, 0, 0, 0.72),
+    0 0 22px rgba(212, 175, 55, 0.12);
 }
 
 .series-search-icon {
-  color:
-    rgba(255, 255, 255, 0.72);
+  color: var(--bono-gold);
 
   font-size: 22px;
 }
@@ -198,20 +284,20 @@
 }
 
 .series-search-box input::placeholder {
-  color:
-    rgba(255, 255, 255, 0.38);
+  color: rgba(255, 255, 255, 0.34);
 }
 
 .series-search-count {
-  min-width: 34px;
+  min-width: 38px;
 
-  color:
-    rgba(255, 255, 255, 0.50);
+  color: var(--bono-gold-light);
 
   font-size: 11px;
+  font-weight: 800;
 
   text-align: right;
 }
+
 
 /* =========================================================
    MAIN LAYOUT
@@ -219,20 +305,21 @@
 
 .series-layout {
   height:
-    calc(100vh - 72px);
+    calc(100vh - 68px);
 
   display: grid;
 
   grid-template-columns:
-    220px 1fr;
+    205px 1fr;
 
-  gap: 18px;
+  gap: 16px;
 
   padding:
-    20px 32px 28px;
+    12px 22px 18px;
 
   box-sizing: border-box;
 }
+
 
 /* =========================================================
    CATEGORIES
@@ -241,9 +328,14 @@
 .series-categories {
   min-height: 0;
 
-  padding: 14px;
+  padding: 11px;
 
-  border-radius: 12px;
+  box-sizing: border-box;
+
+  border:
+    1px solid rgba(212, 175, 55, 0.08);
+
+  border-radius: 11px;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -251,7 +343,11 @@
   scrollbar-width: none;
 
   background:
-    rgba(5, 12, 36, 0.52);
+    linear-gradient(
+      180deg,
+      rgba(19, 19, 19, 0.94),
+      rgba(8, 8, 8, 0.94)
+    );
 }
 
 .series-categories::-webkit-scrollbar {
@@ -259,13 +355,14 @@
 }
 
 .series-column-title {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 
-  color:
-    rgba(255, 255, 255, 0.48);
+  padding: 0 7px;
 
-  font-size: 10px;
-  font-weight: 800;
+  color: rgba(242, 214, 117, 0.58);
+
+  font-size: 9px;
+  font-weight: 900;
 
   text-transform: uppercase;
 
@@ -273,14 +370,29 @@
 }
 
 .series-category {
-  height: 44px;
+  height: 39px;
 
-  padding: 0 12px;
+  padding: 0 10px;
+
+  box-sizing: border-box;
 
   display: flex;
   align-items: center;
 
-  .series-category-name {
+  border:
+    2px solid transparent;
+
+  border-radius: 7px;
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 11px;
+
+  background: transparent;
+}
+
+.series-category-name {
   min-width: 0;
 
   flex: 1;
@@ -295,52 +407,99 @@
 .series-category-count {
   flex-shrink: 0;
 
-  margin-left: 10px;
+  margin-left: 8px;
 
   color:
-    rgba(255, 255, 255, 0.42);
+    rgba(255, 255, 255, 0.34);
 
-  font-size: 10px;
-
-  font-weight: 700;
-
-  text-align: right;
-}
-
-.series-category.is-focused
-.series-category-count {
-  color:
-    rgba(255, 255, 255, 0.78);
-}
-
-  box-sizing: border-box;
-
-  border:
-    2px solid transparent;
-
-  border-radius: 8px;
-
-  color:
-    rgba(255, 255, 255, 0.68);
-
-  font-size: 12px;
+  font-size: 9px;
+  font-weight: 800;
 }
 
 .series-category.is-focused {
-  color: #ffffff;
+  border-color: var(--bono-gold-light);
 
-  border-color: #ffffff;
+  color: #ffffff;
 
   background:
     linear-gradient(
       90deg,
-      rgba(36, 107, 255, 0.75),
-      rgba(101, 56, 200, 0.52)
+      rgba(212, 175, 55, 0.25),
+      rgba(212, 175, 55, 0.06)
     );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(242, 214, 117, 0.28);
 }
+
+.series-category.is-focused
+.series-category-count {
+  color: var(--bono-gold-light);
+}
+
+
+/* =========================================================
+   SERIES CONTENT
+   ========================================================= */
+
+.series-content {
+  min-width: 0;
+  min-height: 0;
+
+  display: grid;
+
+  grid-template-rows:
+    28px minmax(0, 1fr);
+
+  gap: 5px;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   GRID HEADER
+   ========================================================= */
+
+.series-grid-header {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 5px;
+}
+
+.series-grid-header h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.series-grid-header span {
+  color:
+    rgba(242, 214, 117, 0.62);
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.5px;
+}
+
 
 /* =========================================================
    SERIES GRID
+   4 × 2
    ========================================================= */
 
 .series-grid {
@@ -350,44 +509,82 @@
   display: grid;
 
   grid-template-columns:
-    repeat(
-      5,
-      minmax(0, 1fr)
-    );
+    repeat(4, minmax(0, 1fr));
 
-  gap: 16px;
+  grid-template-rows:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 9px 12px;
+
+  padding:
+    4px 3px 4px;
+
+  box-sizing: border-box;
 
   overflow: hidden;
 }
 
+
+/* =========================================================
+   SERIES CARD
+   ========================================================= */
+
 .series-card {
   min-width: 0;
+  min-height: 0;
 
-  padding: 10px;
+  padding: 5px;
+
+  box-sizing: border-box;
+
+  display: grid;
+
+  grid-template-rows:
+    minmax(0, 1fr)
+    auto
+    auto;
+
+  gap: 3px;
 
   border:
     2px solid transparent;
 
-  border-radius: 12px;
+  border-radius: 9px;
 
   background:
-    rgba(255, 255, 255, 0.05);
+    rgba(255, 255, 255, 0.035);
+
+  overflow: hidden;
 }
 
 .series-card.is-focused {
-  border-color: #ffffff;
+  transform: none;
 
-  transform:
-    scale(1.025);
+  border-color: var(--bono-gold-light);
 
   background:
-    rgba(255, 255, 255, 0.10);
+    rgba(212, 175, 55, 0.07);
+
+  box-shadow:
+    inset 0 0 0 2px
+      rgba(242, 214, 117, 0.72),
+    0 0 17px
+      rgba(212, 175, 55, 0.30);
 }
 
-.series-poster {
-  aspect-ratio: 2 / 3;
 
-  margin-bottom: 10px;
+/* =========================================================
+   SERIES POSTER
+   FULL POSTER + BLURRED BACKGROUND
+   ========================================================= */
+
+.series-poster {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  min-height: 0;
 
   display: flex;
   align-items: center;
@@ -395,32 +592,80 @@
 
   overflow: hidden;
 
-  border-radius: 9px;
+  border-radius: 6px;
 
-  background:
-    linear-gradient(
-      145deg,
-      #3159be,
-      #552493
-    );
+  background-color: #080808;
+
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 
   font-size: 26px;
   font-weight: 900;
 }
 
+.series-poster::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    rgba(0, 0, 0, 0.48);
+
+  backdrop-filter:
+    blur(14px);
+
+  transform:
+    scale(1.08);
+}
+
 .series-poster-image {
-  width: 100%;
+  position: relative;
+
+  z-index: 2;
+
+  display: block;
+
+  width: auto;
   height: 100%;
 
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+  object-position: center;
+
+  background: transparent;
 }
+
+.series-poster > span {
+  position: relative;
+
+  z-index: 2;
+
+  color: var(--bono-gold-light);
+}
+
+
+/* =========================================================
+   CARD TEXT
+   ========================================================= */
 
 .series-card > strong {
   display: block;
 
-  margin-bottom: 4px;
+  min-width: 0;
 
-  font-size: 13px;
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  line-height: 1.2;
 
   white-space: nowrap;
 
@@ -430,35 +675,42 @@
 }
 
 .series-card > span {
-  color:
-    rgba(255, 255, 255, 0.48);
+  min-width: 0;
 
-  font-size: 9px;
+  color:
+    rgba(255, 255, 255, 0.42);
+
+  font-size: 8px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 }
 
 .series-empty {
   grid-column:
     1 / -1;
 
-  height: 220px;
-
   display: flex;
   align-items: center;
   justify-content: center;
 
   color:
-    rgba(255, 255, 255, 0.50);
+    rgba(255, 255, 255, 0.48);
 
-  font-size: 15px;
+  font-size: 14px;
 }
+
 
 /* =========================================================
    FULL SCREEN SERIES DETAILS
+   BONO GOLD + BLACK
    ========================================================= */
 
 .series-details-fullscreen {
   position: fixed;
-
   inset: 0;
 
   z-index: 100;
@@ -468,28 +720,21 @@
 
   overflow: hidden;
 
-  background:
-    radial-gradient(
-      circle at 74% 32%,
-      rgba(34, 94, 205, 0.22),
-      transparent 38%
-    ),
-    linear-gradient(
-      120deg,
-      #020817 0%,
-      #06142b 52%,
-      #071329 100%
-    );
-
-  background-size: cover;
-  background-position: center;
-
   color: #ffffff;
+
+  background-color: #050505;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
+
+
+/* =========================================================
+   DETAILS BACKGROUND
+   ========================================================= */
 
 .series-details-background-glow {
   position: absolute;
-
   inset: 0;
 
   pointer-events: none;
@@ -497,15 +742,26 @@
   background:
     linear-gradient(
       90deg,
-      rgba(2, 8, 23, 0.24),
-      rgba(2, 8, 23, 0.04) 50%,
-      rgba(2, 8, 23, 0.30)
+      rgba(0, 0, 0, 0.93) 0%,
+      rgba(0, 0, 0, 0.82) 30%,
+      rgba(0, 0, 0, 0.57) 58%,
+      rgba(0, 0, 0, 0.28) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.86) 0%,
+      rgba(0, 0, 0, 0.14) 55%,
+      rgba(0, 0, 0, 0.28) 100%
     );
 }
 
+
+/* =========================================================
+   DETAILS MAIN LAYOUT
+   ========================================================= */
+
 .series-details-layout {
   position: relative;
-
   z-index: 1;
 
   width: 100%;
@@ -516,61 +772,84 @@
   display: grid;
 
   grid-template-columns:
-    minmax(
-      280px,
-      34vw
-    )
-    1fr;
+    minmax(300px, 31vw)
+    minmax(0, 1fr);
 
-  gap: 42px;
+  align-items: center;
+
+  gap: 46px;
 
   padding:
-    34px 46px 30px;
+    34px 54px;
 }
+
 
 /* =========================================================
    DETAILS POSTER
    ========================================================= */
 
 .series-details-poster {
-  min-width: 0;
+  width: auto;
 
   height:
-    calc(100vh - 64px);
+    min(
+      78vh,
+      620px
+    );
 
-  overflow: hidden;
+  max-width: 100%;
+  max-height: 78vh;
+
+  aspect-ratio: 2 / 3;
+
+  min-width: 0;
+
+  justify-self: center;
+  align-self: center;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 18px;
+  overflow: hidden;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(37, 78, 155, 0.85),
-      rgba(31, 23, 76, 0.95)
-    );
+  border:
+    1px solid
+    rgba(212, 175, 55, 0.45);
+
+  border-radius: 13px;
+
+  background: #080808;
 
   box-shadow:
-    0 26px 70px
-      rgba(0, 0, 0, 0.42);
+    0 0 0 1px
+      rgba(212, 175, 55, 0.12),
+    0 18px 50px
+      rgba(0, 0, 0, 0.60);
 }
 
 .series-details-poster img {
+  display: block;
+
   width: 100%;
   height: 100%;
 
-  object-fit: cover;
+  object-fit: contain;
+  object-position:
+    center center;
+
+  background: #080808;
 }
 
 .series-details-poster > span {
-  font-size: 56px;
+  color: var(--bono-gold);
+
+  font-size: 60px;
   font-weight: 900;
 
   letter-spacing: 3px;
 }
+
 
 /* =========================================================
    DETAILS CONTENT
@@ -584,41 +863,42 @@
 
   justify-content: center;
 
-  padding-right: 26px;
+  padding-right: 22px;
 }
 
 .series-details-label {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 
-  color: #2c91ff;
+  color: var(--bono-gold);
 
   font-size: 11px;
   font-weight: 900;
 
-  letter-spacing: 2.2px;
+  letter-spacing: 2.3px;
 }
 
 .series-details-content h2 {
   margin:
-    0 0 18px;
+    0 0 15px;
 
-  max-width: 96%;
+  max-width: 94%;
 
   color: #ffffff;
 
   font-size:
     clamp(
-      30px,
-      3.25vw,
-      55px
+      35px,
+      3.55vw,
+      58px
     );
 
-  font-weight: 800;
+  font-weight: 850;
 
-  line-height: 1.08;
+  line-height: 1.03;
 
-  letter-spacing: -0.7px;
+  letter-spacing: -0.8px;
 }
+
 
 /* =========================================================
    DETAILS BADGES
@@ -629,55 +909,61 @@
   align-items: center;
   flex-wrap: wrap;
 
-  gap: 10px;
+  gap: 8px;
 
-  margin-bottom: 22px;
+  margin-bottom: 17px;
 }
 
 .series-details-badges > span {
-  min-height: 34px;
+  min-height: 31px;
 
   box-sizing: border-box;
 
   display: inline-flex;
   align-items: center;
 
-  padding: 0 12px;
+  padding:
+    0 11px;
 
-  border-radius: 8px;
+  border:
+    1px solid
+      rgba(255, 255, 255, 0.08);
+
+  border-radius: 7px;
 
   background:
-    rgba(255, 255, 255, 0.09);
+    rgba(255, 255, 255, 0.08);
 
   color:
     rgba(255, 255, 255, 0.90);
 
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .series-details-badges
 .series-detail-rating {
-  background:
-    linear-gradient(
-      135deg,
-      #0f87ff,
-      #2568e8
-    );
+  border-color:
+    rgba(212, 175, 55, 0.42);
 
-  color: #ffffff;
+  background:
+    rgba(212, 175, 55, 0.18);
+
+  color:
+    var(--bono-gold-light);
 }
 
+
 /* =========================================================
-   DETAILS PLOT
+   DESCRIPTION
    ========================================================= */
 
 .series-details-plot,
 .series-details-loading {
-  max-width: 930px;
+  max-width: 910px;
 
   margin:
-    0 0 27px;
+    0 0 19px;
 
   color:
     rgba(255, 255, 255, 0.78);
@@ -689,27 +975,35 @@
       17px
     );
 
-  line-height: 1.65;
+  line-height: 1.55;
+
+  display: -webkit-box;
+
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
 }
 
+
 /* =========================================================
-   DETAILS INFO
+   SERIES INFO
    ========================================================= */
 
 .series-details-info-grid {
-  max-width: 980px;
+  max-width: 900px;
 
   display: grid;
 
   grid-template-columns:
-    minmax(0, 0.8fr)
+    minmax(0, 0.78fr)
     minmax(0, 1.25fr);
 
-  column-gap: 48px;
+  column-gap: 42px;
 
-  row-gap: 19px;
+  row-gap: 13px;
 
-  padding-bottom: 25px;
+  padding-bottom: 20px;
 }
 
 .series-detail-info {
@@ -718,16 +1012,17 @@
   display: flex;
   flex-direction: column;
 
-  gap: 5px;
+  gap: 4px;
 }
 
 .series-detail-info > span {
-  color: #2c91ff;
+  color:
+    var(--bono-gold);
 
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
 
-  letter-spacing: 0.7px;
+  letter-spacing: 0.9px;
 }
 
 .series-detail-info > strong {
@@ -736,7 +1031,7 @@
   color:
     rgba(255, 255, 255, 0.94);
 
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 
   line-height: 1.4;
@@ -747,67 +1042,158 @@
     1 / -1;
 }
 
+
 /* =========================================================
-   OPEN SEASONS BUTTON
+   SEASONS BUTTON
    ========================================================= */
 
-.series-open-seasons {
-  width: 210px;
+/* =========================================================
+   DETAILS ACTIONS
+   ========================================================= */
+
+.series-details-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   TRAILER BUTTON
+   ========================================================= */
+
+.series-trailer-button {
+  width: 190px;
   height: 52px;
 
-  padding: 0 18px;
+  padding:
+    0 18px;
 
   box-sizing: border-box;
 
   display: flex;
   align-items: center;
-  justify-content:
-    space-between;
+  justify-content: center;
+
+  gap: 10px;
 
   border:
-    2px solid transparent;
+    2px solid rgba(212, 175, 55, 0.22);
 
-  border-radius: 11px;
+  border-radius: 10px;
 
   background:
-    linear-gradient(
-      135deg,
-      #0d8cff,
-      #1769ea
-    );
+    rgba(255, 255, 255, 0.06);
 
-  color: #ffffff;
+  color:
+    rgba(255, 255, 255, 0.90);
 
   font-size: 14px;
   font-weight: 900;
 
   box-shadow:
     0 15px 38px
-      rgba(14, 111, 239, 0.24);
+      rgba(0, 0, 0, 0.34);
+}
+
+.series-trailer-button.is-focused {
+  border-color:
+    var(--bono-gold-light);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f2d675,
+      #d4af37
+    );
+
+  color: #050505;
+
+  box-shadow:
+    inset 0 0 0 2px
+      rgba(255, 255, 255, 0.20),
+    0 0 23px
+      rgba(212, 175, 55, 0.40);
+}
+
+.series-trailer-icon {
+  font-size: 15px;
+
+  line-height: 1;
+}
+
+
+.series-open-seasons {
+  width: 225px;
+  height: 52px;
+
+  padding:
+    0 18px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border:
+    2px solid
+      rgba(212, 175, 55, 0.22);
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #b88b16,
+      #7f5b0b
+    );
+
+  color: #080808;
+
+  font-size: 14px;
+  font-weight: 900;
+
+  box-shadow:
+    0 15px 38px
+      rgba(0, 0, 0, 0.42);
 }
 
 .series-open-seasons.is-focused {
-  border-color: #ffffff;
+  border-color:
+    #fff0a3;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f2d675,
+      #d4af37
+    );
 
   box-shadow:
-    0 0 0 4px
-      rgba(255, 255, 255, 0.09),
-    0 15px 38px
-      rgba(14, 111, 239, 0.30);
+    inset 0 0 0 2px
+      rgba(255, 255, 255, 0.22),
+    0 0 23px
+      rgba(212, 175, 55, 0.42);
 }
 
 .series-open-seasons > span {
-  font-size: 24px;
+  font-size: 25px;
+  line-height: 1;
 }
 
 .series-details-hint {
-  margin-top: 14px;
+  margin-top: 10px;
 
   color:
     rgba(255, 255, 255, 0.38);
 
-  font-size: 10px;
+  font-size: 9px;
 }
+
 
 /* =========================================================
    SEASONS PANEL
@@ -816,57 +1202,75 @@
 .series-seasons-panel {
   position: absolute;
 
-  inset:
-    auto 0 0 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 
   z-index: 5;
 
-  min-height: 250px;
+  min-height: 220px;
+  max-height: 50vh;
+
+  overflow: hidden;
 
   padding:
-    20px 34px 26px;
+    16px 36px 20px;
 
   box-sizing: border-box;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(3, 9, 24, 0.16),
-      rgba(3, 9, 24, 0.94)
-        28%
-    );
+  border-top:
+    1px solid
+      rgba(212, 175, 55, 0.20);
 
-  backdrop-filter:
-    blur(12px);
+  background:
+  linear-gradient(
+    180deg,
+    #090909 0%,
+    #050505 18%,
+    #020202 100%
+  );
+
+backdrop-filter: none;
+
+  box-shadow:
+    0 -18px 55px
+      rgba(0, 0, 0, 0.46);
 }
 
 .series-seasons-title {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 
   color:
-    rgba(255, 255, 255, 0.62);
+    var(--bono-gold);
 
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
 
-  letter-spacing: 1.5px;
+  letter-spacing: 1.6px;
 
   text-transform: uppercase;
 }
 
+
+/* =========================================================
+   SEASONS ROW
+   ========================================================= */
+
 .series-seasons-row {
   display: flex;
 
-  gap: 12px;
+  gap: 10px;
 
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 .series-season-card {
-  min-width: 150px;
-  height: 58px;
+  min-width: 160px;
+  height: 57px;
 
-  padding: 0 14px;
+  padding:
+    0 14px;
 
   box-sizing: border-box;
 
@@ -880,134 +1284,180 @@
   border:
     2px solid transparent;
 
-  border-radius: 10px;
+  border-radius: 9px;
 
   background:
-    rgba(255, 255, 255, 0.08);
+    rgba(255, 255, 255, 0.065);
 }
 
 .series-season-card.is-focused {
-  border-color: #ffffff;
+  border-color:
+    var(--bono-gold-light);
 
   background:
     linear-gradient(
       135deg,
-      rgba(48, 124, 255, 0.65),
-      rgba(105, 61, 210, 0.58)
+      rgba(212, 175, 55, 0.30),
+      rgba(111, 81, 15, 0.23)
     );
+
+  box-shadow:
+    inset 0 0 0 1px
+      rgba(242, 214, 117, 0.36),
+    0 0 17px
+      rgba(212, 175, 55, 0.25);
 }
 
 .series-season-card strong {
   color: #ffffff;
 
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 }
 
 .series-season-card span {
   color:
-    rgba(255, 255, 255, 0.48);
+    rgba(255, 255, 255, 0.45);
 
-  font-size: 9px;
+  font-size: 8px;
 }
 
+
 /* =========================================================
-   EPISODES
+   EPISODES PANEL
    ========================================================= */
 
 .series-episodes-panel {
-  margin-top: 16px;
+  margin-top: 12px;
 
-  padding-top: 14px;
+  padding-top: 10px;
 
   border-top:
     1px solid
-      rgba(255, 255, 255, 0.08);
+      rgba(212, 175, 55, 0.12);
 }
 
 .series-episodes-title {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 
   color:
-    rgba(255, 255, 255, 0.62);
+    var(--bono-gold-light);
 
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
 
   letter-spacing: 1.2px;
 }
 
+
+/* =========================================================
+   EPISODES LIST
+   ========================================================= */
+
 .series-episodes-list {
-  max-height: 220px;
+  max-height:
+    calc(50vh - 160px);
 
   overflow-y: auto;
+  overflow-x: hidden;
 
   scrollbar-width: none;
+
+  overscroll-behavior: contain;
 }
 
 .series-episodes-list::-webkit-scrollbar {
   display: none;
 }
 
-.series-episode-row {
-  min-height: 54px;
 
-  padding: 8px 12px;
+/* =========================================================
+   EPISODE
+   ========================================================= */
+
+.series-episode-row {
+  min-height: 52px;
+
+  padding:
+    7px 12px;
 
   box-sizing: border-box;
 
   display: grid;
 
   grid-template-columns:
-    42px 1fr 44px;
+    40px minmax(0, 1fr) 90px;
 
   align-items: center;
 
-  gap: 12px;
+  gap: 11px;
 
   border:
     2px solid transparent;
 
-  border-radius: 9px;
+  border-radius: 8px;
 
   background:
-    rgba(255, 255, 255, 0.04);
+    rgba(255, 255, 255, 0.035);
 }
 
 .series-episode-row
 +
 .series-episode-row {
-  margin-top: 7px;
+  margin-top: 6px;
 }
 
 .series-episode-row.is-focused {
-  border-color: #ffffff;
+  border-color:
+    var(--bono-gold-light);
 
   background:
     linear-gradient(
       90deg,
-      rgba(36, 107, 255, 0.55),
-      rgba(101, 56, 200, 0.36)
+      rgba(212, 175, 55, 0.20),
+      rgba(212, 175, 55, 0.025)
     );
+
+  box-shadow:
+    inset 0 0 0 1px
+      rgba(242, 214, 117, 0.25);
 }
 
+
+/* =========================================================
+   EPISODE NUMBER
+   ========================================================= */
+
 .series-episode-number {
-  width: 32px;
-  height: 32px;
+  width: 31px;
+  height: 31px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 8px;
+  border-radius: 7px;
 
   background:
-    rgba(255, 255, 255, 0.08);
+    rgba(212, 175, 55, 0.13);
 
-  color: #ffffff;
+  color:
+    var(--bono-gold-light);
 
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
 }
+
+
+/* =========================================================
+   EPISODE INFO
+   ========================================================= */
 
 .series-episode-copy {
   min-width: 0;
@@ -1021,7 +1471,8 @@
 .series-episode-copy strong {
   color: #ffffff;
 
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 700;
 
   white-space: nowrap;
 
@@ -1032,69 +1483,106 @@
 
 .series-episode-copy span {
   color:
-    rgba(255, 255, 255, 0.48);
+    rgba(255, 255, 255, 0.44);
 
-  font-size: 9px;
+  font-size: 8px;
 }
 
+
+/* =========================================================
+   EPISODE PLAY
+   ========================================================= */
+
 .series-episode-play {
-  width: 34px;
-  height: 34px;
+  min-width: 36px;
+  height: 32px;
+
+  padding:
+    0 8px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
+  box-sizing: border-box;
+
+  border-radius: 7px;
 
   background:
-    rgba(255, 255, 255, 0.10);
+    rgba(212, 175, 55, 0.12);
 
-  color: #ffffff;
+  color:
+    var(--bono-gold-light);
 
-  font-size: 11px;
+  font-size: 9px;
+  font-weight: 900;
+
+  white-space: nowrap;
+}
+
+.series-episode-row.is-focused
+.series-episode-play {
+  background:
+    linear-gradient(
+      135deg,
+      #f2d675,
+      #d4af37
+    );
+
+  color: #060606;
+
+  box-shadow:
+    0 0 13px
+      rgba(212, 175, 55, 0.28);
 }
 
 /* =========================================================
    RESPONSIVE TV
    ========================================================= */
 
-@media (
-  max-width: 1280px
-) {
+@media (max-width: 1280px) {
+
   .series-layout {
     grid-template-columns:
       190px 1fr;
 
     padding:
-      18px 24px 24px;
+      10px 18px 14px;
   }
 
   .series-grid {
-    gap: 12px;
+    gap:
+      8px 10px;
   }
 
   .series-details-layout {
     grid-template-columns:
-      minmax(
-        250px,
-        31vw
-      )
-      1fr;
+      minmax(260px, 29vw)
+      minmax(0, 1fr);
 
     gap: 30px;
 
     padding:
-      28px 34px 26px;
+      27px 34px;
+  }
+
+  .series-details-poster {
+    height:
+      min(86vh, 660px);
   }
 
   .series-details-content h2 {
-    font-size: 36px;
+    font-size:
+      clamp(
+        29px,
+        3.2vw,
+        43px
+      );
   }
 
   .series-details-info-grid {
-    column-gap: 30px;
+    column-gap: 25px;
 
-    row-gap: 15px;
+    row-gap: 11px;
   }
 }

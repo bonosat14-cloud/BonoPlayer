@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 const app = express();
 const PORT = 4000;
@@ -42,7 +44,117 @@ const playlists: Playlist[] = [
     username: "dfbd3681ded9",
     password: "6d97346e0d",
   },
+
+{
+  id: "lynx",
+  deviceId: "326498",
+  name: "Lynx IPTV",
+  type: "m3u",
+  url: "http://live.lynxiptv.xyz:80/get.php?username=361150135291&password=Gzka4KiTZK&type=m3u_plus&output=ts&token=",
+},
+
+{
+  id: "king365",
+  deviceId: "326498",
+  name: "King 365",
+  type: "m3u",
+  url:  "http://azerty365.net/get.php?username=cgsAqrPX&password=kMBtM1D&type=m3u_plus&output=ts"
+},
+
+
 ];
+/*
+ * =========================================================
+ * M3U LIVE PLAY
+ * =========================================================
+ */
+
+app.get(
+  "/api/device/:deviceId/m3u/live/play/:channelIndex",
+  async (req, res) => {
+    const {
+      deviceId,
+      channelIndex,
+    } = req.params;
+
+    const { playlistId } = req.query;
+
+    const playlist =
+      getM3uPlaylist(
+        deviceId,
+        typeof playlistId === "string"
+          ? playlistId
+          : undefined
+      );
+
+    if (
+      !isValidM3uPlaylist(
+        playlist
+      )
+    ) {
+      return res.status(404).json({
+        ok: false,
+        message:
+          "M3U playlist not found for this device.",
+      });
+    }
+
+    try {
+      const channels =
+        await loadM3uChannels(
+          deviceId,
+          playlist
+        );
+
+      const index =
+        Number(channelIndex);
+
+      if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= channels.length
+      ) {
+        return res.status(404).json({
+          ok: false,
+          message:
+            "M3U channel not found.",
+        });
+      }
+
+      const channel =
+        channels[index];
+
+      console.log(
+        "BONO M3U PLAY:",
+        {
+          playlistId:
+            playlist.id,
+          playlistName:
+            playlist.name,
+          channelIndex:
+            index,
+          channelName:
+            channel.name,
+        }
+      );
+
+      return res.redirect(
+        channel.streamUrl
+      );
+    } catch (error) {
+      console.error(
+        "M3U live play failed:",
+        error
+      );
+
+      return res.status(500).json({
+        ok: false,
+        message:
+          "Unable to play M3U channel.",
+      });
+    }
+  }
+);
 
 app.use(cors());
 app.use(express.json());
@@ -76,6 +188,509 @@ function isValidXtreamPlaylist(
       playlist.username &&
       playlist.password
   );
+}
+
+function getM3uPlaylist(
+  deviceId: string,
+  playlistId?: string
+): Playlist | undefined {
+  return playlists.find(
+    (item) =>
+      item.deviceId === deviceId &&
+      item.type === "m3u" &&
+      (!playlistId || item.id === playlistId)
+  );
+}
+
+function isValidM3uPlaylist(
+  playlist: Playlist | undefined
+): playlist is Playlist & {
+  url: string;
+} {
+  return Boolean(
+    playlist &&
+      playlist.type === "m3u" &&
+      playlist.url
+  );
+}
+
+type M3uLiveChannel = {
+  id: string;
+  name: string;
+  category: string;
+  logo: string;
+  streamUrl: string;
+  epgId?: string;
+};
+
+function readM3uAttribute(
+  line: string,
+  attribute: string
+): string {
+  const match = line.match(
+    new RegExp(
+      `${attribute}="([^"]*)"`,
+      "i"
+    )
+  );
+
+  return (
+    match?.[1]?.trim() ?? ""
+  );
+}
+
+function parseM3uContent(
+  content: string
+): M3uLiveChannel[] {
+  const lines = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const channels:
+    M3uLiveChannel[] = [];
+
+  let currentInfo = "";
+
+  for (const line of lines) {
+    if (
+      line.startsWith("#EXTINF")
+    ) {
+      currentInfo = line;
+      continue;
+    }
+
+    if (
+      currentInfo &&
+      !line.startsWith("#")
+    ) {
+      const streamUrl = line;
+
+      const lowerUrl =
+        streamUrl.toLowerCase();
+
+      const isMovie =
+        lowerUrl.includes("/movie/");
+
+      const isSeries =
+        lowerUrl.includes("/series/");
+
+      if (
+        isMovie ||
+        isSeries
+      ) {
+        currentInfo = "";
+        continue;
+      }
+
+      const commaIndex =
+        currentInfo.lastIndexOf(",");
+
+      const name =
+        commaIndex >= 0
+          ? currentInfo
+              .slice(
+                commaIndex + 1
+              )
+              .trim()
+          : "Unknown Channel";
+
+      const category =
+        readM3uAttribute(
+          currentInfo,
+          "group-title"
+        ) || "Other";
+
+      const logo =
+        readM3uAttribute(
+          currentInfo,
+          "tvg-logo"
+        );
+
+      const epgId =
+        readM3uAttribute(
+          currentInfo,
+          "tvg-id"
+        );
+
+      channels.push({
+        id:
+          epgId ||
+          `m3u-${channels.length + 1}`,
+
+        name,
+
+        category,
+
+        logo,
+
+        streamUrl,
+
+        epgId:
+          epgId || undefined,
+      });
+
+      currentInfo = "";
+    }
+  }
+
+  return channels;
+}
+
+/*
+ * =========================================================
+ * M3U LIVE CACHE
+ * =========================================================
+ */
+
+type M3uLiveCache = {
+  deviceId: string;
+  playlistUrl: string;
+  updatedAt: number;
+  channels: M3uLiveChannel[];
+};
+
+const M3U_CACHE_MAX_AGE_MS =
+  6 * 60 * 60 * 1000;
+
+const m3uLiveCache =
+  new Map<string, M3uLiveCache>();
+
+/*
+ * Prevent multiple simultaneous requests from downloading
+ * the same M3U playlist at the same time.
+ */
+const m3uLoadInFlight =
+  new Map<
+    string,
+    Promise<M3uLiveChannel[]>
+  >();
+
+/*
+ * Runtime cache is intentionally outside src.
+ *
+ * IMPORTANT:
+ * This file contains the real stream URLs and therefore
+ * must never be committed to Git.
+ */
+const M3U_RUNTIME_CACHE_DIR =
+  path.resolve(
+    process.cwd(),
+    ".runtime-cache"
+  );
+
+function getM3uCacheFile(
+  deviceId: string
+): string {
+  const safeDeviceId =
+    deviceId.replace(
+      /[^a-zA-Z0-9_-]/g,
+      "_"
+    );
+
+  return path.join(
+    M3U_RUNTIME_CACHE_DIR,
+    `m3u-${safeDeviceId}.json`
+  );
+}
+
+async function saveM3uDiskCache(
+  cache: M3uLiveCache
+): Promise<void> {
+  try {
+    await fs.mkdir(
+      M3U_RUNTIME_CACHE_DIR,
+      {
+        recursive: true,
+      }
+    );
+
+    await fs.writeFile(
+      getM3uCacheFile(
+        cache.deviceId
+      ),
+      JSON.stringify(cache),
+      "utf8"
+    );
+
+    console.log(
+      `BONO M3U persistent cache saved: ${cache.channels.length} channels`
+    );
+  } catch (error) {
+    /*
+     * Disk cache failure must not stop playback.
+     */
+    console.warn(
+      "BONO M3U persistent cache save failed:",
+      error
+    );
+  }
+}
+
+async function readM3uDiskCache(
+  deviceId: string,
+  playlistUrl: string
+): Promise<M3uLiveCache | null> {
+  try {
+    const raw =
+      await fs.readFile(
+        getM3uCacheFile(
+          deviceId
+        ),
+        "utf8"
+      );
+
+    const parsed =
+      JSON.parse(
+        raw
+      ) as M3uLiveCache;
+
+    if (
+      parsed.deviceId !== deviceId ||
+      parsed.playlistUrl !==
+        playlistUrl ||
+      !Array.isArray(
+        parsed.channels
+      ) ||
+      parsed.channels.length === 0
+    ) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchFreshM3uChannels(
+  deviceId: string,
+  playlist: Playlist & {
+    url: string;
+  }
+): Promise<M3uLiveChannel[]> {
+  console.log(
+    "BONO M3U loading fresh playlist..."
+  );
+
+  const response =
+    await fetch(
+      playlist.url
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      `M3U server returned HTTP ${response.status}.`
+    );
+  }
+
+  const content =
+    await response.text();
+
+  const channels =
+    parseM3uContent(
+      content
+    );
+
+  if (channels.length === 0) {
+    throw new Error(
+      "M3U playlist contains no channels."
+    );
+  }
+
+  const cache:
+    M3uLiveCache = {
+      deviceId,
+      playlistUrl:
+        playlist.url,
+      updatedAt:
+        Date.now(),
+      channels,
+    };
+
+  m3uLiveCache.set(
+    deviceId,
+    cache
+  );
+
+  await saveM3uDiskCache(
+    cache
+  );
+
+  console.log(
+    `BONO M3U fresh cache saved: ${channels.length} channels`
+  );
+
+  return channels;
+}
+
+async function loadM3uChannels(
+  deviceId: string,
+  playlist: Playlist & {
+    url: string;
+  }
+): Promise<M3uLiveChannel[]> {
+  /*
+   * 1. Fresh RAM cache.
+   */
+  const memoryCache =
+    m3uLiveCache.get(
+      deviceId
+    );
+
+  if (
+    memoryCache &&
+    memoryCache.playlistUrl ===
+      playlist.url &&
+    Date.now() -
+      memoryCache.updatedAt <
+      M3U_CACHE_MAX_AGE_MS
+  ) {
+    console.log(
+      `BONO M3U memory cache hit: ${memoryCache.channels.length} channels`
+    );
+
+    return memoryCache.channels;
+  }
+
+  /*
+   * 2. Load persistent cache from disk.
+   *
+   * We put it into memory immediately.
+   */
+  const diskCache =
+    await readM3uDiskCache(
+      deviceId,
+      playlist.url
+    );
+
+  if (
+    diskCache &&
+    (
+      !memoryCache ||
+      diskCache.updatedAt >
+        memoryCache.updatedAt
+    )
+  ) {
+    m3uLiveCache.set(
+      deviceId,
+      diskCache
+    );
+  }
+
+  const bestCached =
+    m3uLiveCache.get(
+      deviceId
+    );
+
+  /*
+   * 3. If disk/memory cache is still fresh,
+   * return it without contacting provider.
+   */
+  if (
+    bestCached &&
+    bestCached.playlistUrl ===
+      playlist.url &&
+    Date.now() -
+      bestCached.updatedAt <
+      M3U_CACHE_MAX_AGE_MS
+  ) {
+    console.log(
+      `BONO M3U persistent cache hit: ${bestCached.channels.length} channels`
+    );
+
+    return bestCached.channels;
+  }
+
+  /*
+   * 4. Only one provider download may run
+   * for this device at a time.
+   */
+  const existingRequest =
+    m3uLoadInFlight.get(
+      deviceId
+    );
+
+  if (existingRequest) {
+    console.log(
+      "BONO M3U waiting for existing playlist request..."
+    );
+
+    try {
+      return await existingRequest;
+    } catch (error) {
+      /*
+       * The shared refresh failed.
+       * Use stale cache when available.
+       */
+      if (
+        bestCached &&
+        bestCached.playlistUrl ===
+          playlist.url &&
+        bestCached.channels.length > 0
+      ) {
+        console.warn(
+          `BONO M3U refresh failed; using stale cache: ${bestCached.channels.length} channels`
+        );
+
+        return bestCached.channels;
+      }
+
+      throw error;
+    }
+  }
+
+  /*
+   * 5. Try fresh provider download.
+   */
+  const request =
+    fetchFreshM3uChannels(
+      deviceId,
+      playlist
+    );
+
+  m3uLoadInFlight.set(
+    deviceId,
+    request
+  );
+
+  try {
+    return await request;
+  } catch (error) {
+    /*
+     * 6. Provider is unavailable.
+     * Use stale memory/disk cache indefinitely.
+     */
+    const staleCache =
+      m3uLiveCache.get(
+        deviceId
+      ) ??
+      diskCache;
+
+    if (
+      staleCache &&
+      staleCache.playlistUrl ===
+        playlist.url &&
+      staleCache.channels.length > 0
+    ) {
+      console.warn(
+        `BONO M3U provider unavailable; using stale cache: ${staleCache.channels.length} channels`
+      );
+
+      m3uLiveCache.set(
+        deviceId,
+        staleCache
+      );
+
+      return staleCache.channels;
+    }
+
+    throw error;
+  } finally {
+    m3uLoadInFlight.delete(
+      deviceId
+    );
+  }
 }
 
 /*
@@ -181,6 +796,114 @@ app.get(
 
 /*
  * =========================================================
+ * M3U LIVE TEST
+ * =========================================================
+ */
+
+/*
+ * =========================================================
+ * M3U LIVE CHANNELS
+ * =========================================================
+ */
+
+app.get(
+  "/api/device/:deviceId/m3u/live",
+  async (req, res) => {
+    const { deviceId } = req.params;
+
+    const { playlistId } = req.query;
+
+    const playlist =
+      getM3uPlaylist(
+        deviceId,
+        typeof playlistId === "string"
+          ? playlistId
+          : undefined
+      );
+
+    console.log("BONO M3U SELECTED:", {
+      requestedPlaylistId: playlistId,
+      selectedId: playlist?.id,
+      selectedName: playlist?.name,
+    });
+
+    if (
+      !isValidM3uPlaylist(
+        playlist
+      )
+    ) {
+      return res.status(404).json({
+        ok: false,
+        message:
+          "M3U playlist not found for this device.",
+      });
+    }
+
+    try {
+      const channels =
+        await loadM3uChannels(
+          deviceId,
+          playlist
+        );
+
+      const publicChannels =
+        channels.map(
+          (channel, index) => ({
+            id:
+              String(index),
+
+            name:
+              channel.name,
+
+            category:
+              channel.category,
+
+            logo:
+              channel.logo,
+
+            streamUrl:
+  `/api/device/${deviceId}` +
+  `/m3u/live/play/${index}` +
+  `?playlistId=${encodeURIComponent(
+    playlist.id
+  )}`,
+
+            epgId:
+              channel.epgId,
+          })
+        );
+
+      return res.json({
+        ok: true,
+
+        deviceId,
+
+        playlistName:
+          playlist.name,
+
+        channelCount:
+          publicChannels.length,
+
+        channels:
+          publicChannels,
+      });
+    } catch (error) {
+      console.error(
+        "M3U live request failed:",
+        error
+      );
+
+      return res.status(500).json({
+        ok: false,
+        message:
+          "Unable to load M3U playlist.",
+      });
+    }
+  }
+);
+
+/*
+ * =========================================================
  * LIVE CATEGORIES
  * =========================================================
  */
@@ -263,11 +986,12 @@ app.get(
   "/api/device/:deviceId/live/streams",
   async (req, res) => {
     const { deviceId } = req.params;
-    const { categoryId } =
-      req.query;
+   const { categoryId } =
+  req.query;
 
     const playlist =
-      getXtreamPlaylist(deviceId);
+  getXtreamPlaylist(deviceId);
+
 
     if (
       !isValidXtreamPlaylist(
