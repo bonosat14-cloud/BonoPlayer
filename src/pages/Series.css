@@ -57,7 +57,8 @@
 
   box-sizing: border-box;
 
-  display: flex;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
   align-items: center;
 
   gap: 20px;
@@ -79,22 +80,32 @@
    ========================================================= */
 
 .series-brand {
-  width: 108px;
+  width: 150px;
+  height: 72px;
 
   display: flex;
   align-items: center;
+  justify-content: flex-start;
 
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .series-brand-logo {
   display: block;
 
-  width: 100%;
-  max-width: 108px;
-  max-height: 45px;
+  width: 132px;
+  height: auto;
+
+  max-width: none;
+  max-height: none;
 
   object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0 0 7px rgba(212, 175, 55, 0.2)
+    );
 }
 
 
@@ -107,14 +118,16 @@
   align-items: center;
 
   gap: 10px;
+  justify-self: start;
 }
 
 .series-title-icon {
   color: var(--bono-gold);
 
-  font-size: 18px;
+  font-size: 24px;
+  line-height: 1;
 
-  transform: rotate(-8deg);
+  transform: rotate(-5deg);
 }
 
 .series-title h1 {
@@ -122,14 +135,12 @@
 
   color: var(--bono-gold);
 
-  font-size: 19px;
-  font-weight: 900;
+  font-size: 24px;
+  font-weight: 800;
 
-  letter-spacing: 2px;
-
-  text-shadow:
-    0 0 14px
-    rgba(212, 175, 55, 0.18);
+  letter-spacing: 2.8px;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 

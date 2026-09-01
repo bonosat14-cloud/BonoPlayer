@@ -1,4 +1,7 @@
+
+
 import {
+  Capacitor,
   registerPlugin,
 } from "@capacitor/core";
 
@@ -227,15 +230,26 @@ Promise<void> {
   await NativePlayer
     .enterLiveFullscreen();
 }
-
 export async function exitNativeLiveFullscreen():
 Promise<void> {
+  if (
+    !Capacitor.isNativePlatform()
+  ) {
+    return;
+  }
+
   await NativePlayer
     .exitLiveFullscreen();
 }
 
 export async function stopNativePreview():
 Promise<void> {
+  if (
+    !Capacitor.isNativePlatform()
+  ) {
+    return;
+  }
+
   await NativePlayer.stopPreview();
 }
 

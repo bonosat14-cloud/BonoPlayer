@@ -4,10 +4,14 @@ import {
   useRef,
   useState,
 } from "react";
-
+import {
+  Capacitor,
+} from "@capacitor/core";
 import type {
   ParsedChannel,
 } from "../services/m3uParser";
+
+import bonoLogoGold from "../assets/bono_logo_gold_no_player.png";
 
 import {
   getDevicePlaylists,
@@ -798,12 +802,16 @@ useEffect(() => {
    */
 
   useEffect(() => {
-    setSelectedChannel(
-      0
-    );
-  }, [
-    selectedCategory,
-  ]);
+  setSearchQuery(
+    ""
+  );
+
+  setSelectedChannel(
+    0
+  );
+}, [
+  selectedCategory,
+]);
 
   useEffect(() => {
     setSelectedChannel(
@@ -1044,8 +1052,7 @@ useEffect(() => {
         return;
       }
 
-      previewChannelIdRef.current =
-        channel.id;
+      
       
       
 /*
@@ -1098,9 +1105,13 @@ console.log(
             rect.height,
 
           scale:
-            window.devicePixelRatio ||
-            1,
+  window.devicePixelRatio ||
+  1,
         });
+
+previewChannelIdRef.current =
+  channel.id;
+
       } catch (
         error
       ) {
@@ -1120,52 +1131,44 @@ console.log(
    * =========================================================
    */
 
-  const openSearch =
-    () => {
-      setSearchOpen(
-        true
+const closeSearch =
+  (
+    keepQuery =
+      true
+  ) => {
+    setSearchOpen(
+      false
+    );
+
+    if (
+      !keepQuery
+    ) {
+      setSearchQuery(
+        ""
       );
+    }
 
-      setFocusArea(
-        "search"
-      );
-    };
+    setSelectedChannel(
+      0
+    );
 
-  const closeSearch =
-    (
-      keepQuery =
-        true
-    ) => {
-      setSearchOpen(
-        false
-      );
+    setFocusArea(
+      "channels"
+    );
 
-      if (
-        !keepQuery
-      ) {
-        setSearchQuery(
-          ""
-        );
-      }
+    window.setTimeout(
+      () => {
+        searchInputRef
+          .current
+          ?.blur();
 
-      setSelectedChannel(
-        0
-      );
-
-      setFocusArea(
-        "channels"
-      );
-
-      window.setTimeout(
-        () => {
-          pageRef
-            .current
-            ?.focus();
-        },
-        0
-      );
-    };
-
+        pageRef
+          .current
+          ?.focus();
+      },
+      0
+    );
+  };
   /*
    * =========================================================
    * PLAY FULL SCREEN
@@ -1246,23 +1249,23 @@ console.log(
         }
 
         if (
-          focusArea ===
-          "categories"
-        ) {
-          setSelectedCategory(
-            focusedCategory
-          );
+  focusArea === "categories"
+) {
+  setSearchQuery("");
 
-          setSelectedChannel(
-            0
-          );
+  setSelectedCategory(
+    focusedCategory
+  );
 
-          setFocusArea(
-            "channels"
-          );
+  setSelectedChannel(0);
 
-          return;
-        }
+  setFocusArea(
+    "channels"
+  );
+
+  return;
+} 
+
 
         if (
           focusArea ===
@@ -1333,11 +1336,67 @@ console.log(
     favoriteChannelIds,
   ]);
 
+  useEffect(() => {
+  /*
+   * Allow the browser Back button
+   * to leave Live TV.
+   */
+  window.history.pushState(
+    { bonoLiveTv: true },
+    ""
+  );
+
+  const handleBrowserBack = () => {
+    void stopNativePreview()
+      .catch((error) => {
+        console.warn(
+          "BONO: Preview stop failed:",
+          error
+        );
+      });
+
+    onBack();
+  };
+
+  window.addEventListener(
+    "popstate",
+    handleBrowserBack
+  );
+
+  return () => {
+    window.removeEventListener(
+      "popstate",
+      handleBrowserBack
+    );
+  };
+}, [onBack]);
+
   /*
    * =========================================================
    * REMOTE NAVIGATION
    * =========================================================
    */
+
+const openSearch =
+  () => {
+    setSearchOpen(
+      true
+    );
+
+    setFocusArea(
+      "search"
+    );
+
+    window.setTimeout(
+      () => {
+        searchInputRef
+          .current
+          ?.focus();
+      },
+      0
+    );
+  };
+
 
   const handleKeyDown =
     (
@@ -1442,20 +1501,20 @@ console.log(
 
         clearFavoriteLongPressTimer();
 
-        if (
-          focusArea ===
-          "channels"
-        ) {
-          setFocusArea(
-            "categories"
-          );
+  if (
+  focusArea ===
+  "channels"
+) {
+  setFocusArea(
+    "categories"
+  );
 
-          setFocusedCategory(
-            selectedCategory
-          );
+  setFocusedCategory(
+    selectedCategory
+  );
 
-          return;
-        }
+  return;
+}
 
         if (
           focusArea ===
@@ -1622,102 +1681,174 @@ console.log(
         return;
       }
 
-      /*
-       * ENTER
-       */
+ /*
+ * ENTER
+ */
 
-      if (
-        enter
-      ) {
-        event.preventDefault();
+if (
+  enter
+) {
+  event.preventDefault();
 
-        if (
-          focusArea ===
-          "search"
-        ) {
-          openSearch();
-        }
+  clearFavoriteLongPressTimer();
 
-        return;
-      }
+  /*
+   * SEARCH
+   */
+  if (
+    focusArea ===
+    "search"
+  ) {
+    openSearch();
 
-      /*
-       * BACK
-       */
+    return;
+  }
 
-      if (
-        back
-      ) {
-        event.preventDefault();
+  /*
+   * CATEGORIES
+   */
+  if (
+    focusArea ===
+    "categories"
+  ) {
+    setSelectedCategory(
+      focusedCategory
+    );
 
-        clearFavoriteLongPressTimer();
+    setSelectedChannel(
+      0
+    );
 
-        if (
-          focusArea ===
-          "search"
-        ) {
-          if (
-            searchQuery
-          ) {
-            setSearchQuery(
-              ""
-            );
+    setFocusArea(
+      "channels"
+    );
 
-            setSelectedChannel(
-              0
-            );
+    return;
+  }
 
-            return;
-          }
+  /*
+   * CHANNELS
+   */
+  if (
+  focusArea ===
+  "channels"
+) {
+  /*
+   * Android TV uses bonoOkDown /
+   * bonoOkUp for channel OK.
+   *
+   * Ignore the duplicate native
+   * keydown Enter event.
+   */
+  if (
+    Capacitor.isNativePlatform()
+  ) {
+    return;
+  }
 
-          setFocusArea(
-            "categories"
-          );
+  /*
+   * Browser / desktop.
+   */
+  void playSelectedChannel();
 
-          return;
-        }
+  return;
+}
+}
+/*
+ * BACK
+ */
 
-        if (
-          focusArea ===
-          "channels"
-        ) {
-          if (
-            searchQuery
-          ) {
-            setSearchQuery(
-              ""
-            );
+if (
+  back
+) {
+  event.preventDefault();
 
-            setSelectedChannel(
-              0
-            );
+  clearFavoriteLongPressTimer();
 
-            setFocusArea(
-              "search"
-            );
+  if (
+    searchQuery
+  ) {
+    setSearchQuery(
+      ""
+    );
 
-            return;
-          }
+    setSelectedChannel(
+      0
+    );
 
-          setFocusArea(
-            "categories"
-          );
+    setFocusArea(
+      "categories"
+    );
 
-          setFocusedCategory(
-            selectedCategory
-          );
+    setFocusedCategory(
+      selectedCategory
+    );
 
-          return;
-        }
+    return;
+  }
 
-        void stopNativePreview()
-          .finally(
-            () => {
-              onBack();
-            }
-          );
-      }
-    };
+ void stopNativePreview()
+  .catch(
+    (error) => {
+      console.warn(
+        "BONO: Preview stop failed:",
+        error
+      );
+    }
+  );
+
+onBack();
+
+return;
+}
+};
+useEffect(() => {
+  const handleWindowKeyDown = (
+    event: KeyboardEvent
+  ) => {
+    const isEnter =
+      event.key === "Enter" ||
+      event.key === "OK" ||
+      event.keyCode === 13;
+
+    if (
+      isEnter &&
+      focusArea === "search" &&
+      !searchOpen
+    ) {
+      event.preventDefault();
+
+      openSearch();
+
+      return;
+    }
+
+    handleKeyDown(
+      event as any
+    );
+  };
+
+  window.addEventListener(
+    "keydown",
+    handleWindowKeyDown
+  );
+
+  return () => {
+    window.removeEventListener(
+      "keydown",
+      handleWindowKeyDown
+    );
+  };
+}, [
+  focusArea,
+  searchOpen,
+  searchQuery,
+  selectedChannel,
+  focusedCategory,
+  selectedCategory,
+  filteredChannels.length,
+]);
+
 
   /*
    * =========================================================
@@ -1732,48 +1863,51 @@ console.log(
       }
       className="live-tv-page"
       tabIndex={0}
-      onKeyDown={
-        handleKeyDown
-      }
+      
+      
     >
-      <header className="live-tv-header">
-        <div className="live-tv-brand">
-          BONO
-        </div>
+     <header className="live-tv-header">
+  <div className="live-tv-brand">
+    <img
+      className="live-tv-brand-logo"
+      src={bonoLogoGold}
+      alt="BONO"
+    />
+  </div>
 
-        <h1>
-          Live TV
-        </h1>
+  <div className="live-tv-title">
+    <h1>LIVE TV</h1>
+  </div>
 
-        <div className="live-tv-header-actions">
-          <button
-            type="button"
-            aria-label="Search"
-            className={`live-tv-search-trigger ${
-              focusArea ===
-              "search"
-                ? "is-focused"
-                : ""
-            }`}
-          >
-            <span className="live-tv-search-trigger-icon">
-              ⌕
-            </span>
+  <div className="live-tv-header-actions">
+    <button
+  type="button"
+  aria-label="Search"
+  className={`live-tv-search-trigger ${
+    focusArea === "search"
+      ? "is-focused"
+      : ""
+  }`}
+  onClick={() => {
+    openSearch();
+  }}
+>
+  <span
+    className="live-tv-search-trigger-icon"
+    aria-hidden="true"
+  >
+    🔍
+  </span>
+</button>
 
-            <span className="live-tv-search-trigger-copy">
-              {searchQuery ||
-                "Search"}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            aria-label="Settings"
-          >
-            ⚙
-          </button>
-        </div>
-      </header>
+    <button
+      type="button"
+      aria-label="Settings"
+    >
+      ⚙
+    </button>
+  </div>
+</header>
 
       {searchOpen && (
         <div className="live-tv-search-overlay">
@@ -1829,21 +1963,24 @@ console.log(
                 ) => {
                   const key =
                     event.key;
+                    event.stopPropagation();
 
-                  if (
-                    key ===
-                      "Escape" ||
-                    key ===
-                      "Esc"
-                  ) {
-                    event.preventDefault();
+      if (
+  key ===
+    "Escape" ||
+  key ===
+    "Esc" ||
+  key ===
+    "Backspace"
+) {
+  event.preventDefault();
 
-                    closeSearch(
-                      true
-                    );
+  closeSearch(
+    false
+  );
 
-                    return;
-                  }
+  return;
+}
 
                   if (
                     key ===
@@ -1949,21 +2086,19 @@ console.log(
         </aside>
 
         <section className="live-tv-channels">
-          <div className="live-tv-column-title">
-            <span>
-              {usingRealPlaylist
-                ? "PLAYLIST CHANNELS"
-                : "LIVE CHANNELS"}
-            </span>
+  <div className="live-tv-column-title">
+    <span>
+      {usingRealPlaylist
+        ? "PLAYLIST CHANNELS"
+        : "LIVE CHANNELS"}
+    </span>
 
-            <strong>
-              {searchQuery
-                ? `Search: ${searchQuery}`
-                : categories[
-                    selectedCategory
-                  ]}
-            </strong>
-          </div>
+    <strong>
+      {searchQuery
+        ? `Search: ${searchQuery}`
+        : categories[selectedCategory]}
+    </strong>
+  </div>
 
           <div className="live-tv-channel-list">
             {visibleChannels.map(

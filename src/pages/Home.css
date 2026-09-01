@@ -79,12 +79,13 @@
    ========================================================= */
 
 .home-header {
-  height: 82px;
-  padding: 0 52px;
+  height: 68px;
+  padding: 0 30px;
 
-  display: flex;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 20px;
 
   box-sizing: border-box;
   position: relative;
@@ -96,6 +97,30 @@
     1px solid rgba(255, 255, 255, 0.06);
 
   backdrop-filter: blur(12px);
+}
+
+.home-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+}
+
+.home-title-icon {
+  color: #d4af37;
+  font-size: 24px;
+  line-height: 1;
+  transform: rotate(-5deg);
+}
+
+.home-title h1 {
+  margin: 0;
+  color: #d4af37;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 2.8px;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .home-brand {
@@ -113,6 +138,8 @@
 }
 
 .home-top-info {
+  margin-left: auto;
+
   display: flex;
   align-items: center;
   gap: 14px;

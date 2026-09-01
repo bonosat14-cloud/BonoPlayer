@@ -69,18 +69,50 @@ function App() {
       null
     );
 
+  /*
+   * =========================================================
+   * GLOBAL TV BACK
+   * =========================================================
+   */
+
   useEffect(() => {
     const handleBonoBack = () => {
-      if (screen === "player") {
-        setPlaylistChannel(null);
-        setScreen("liveTV");
+      /*
+       * PLAYER -> LIVE TV
+       */
+
+      if (
+        screen === "player"
+      ) {
+        setPlaylistChannel(
+          null
+        );
+
+        setScreen(
+          "liveTV"
+        );
+
         return;
       }
 
-      if (screen === "liveTV") {
-        setScreen("home");
+      /*
+       * LIVE TV -> HOME
+       */
+
+      if (
+        screen === "liveTV"
+      ) {
+        setScreen(
+          "home"
+        );
+
         return;
       }
+
+      /*
+       * Movies and Series
+       * handle BACK internally.
+       */
 
       if (
         screen === "movies" ||
@@ -89,12 +121,27 @@ function App() {
         return;
       }
 
-      if (screen === "home") {
-        setScreen("playlists");
+      /*
+       * HOME -> PLAYLISTS
+       */
+
+      if (
+        screen === "home"
+      ) {
+        setScreen(
+          "playlists"
+        );
+
         return;
       }
 
-      if (screen === "playlists") {
+      /*
+       * PLAYLISTS -> EXIT APP
+       */
+
+      if (
+        screen === "playlists"
+      ) {
         void exitNativeApp();
       }
     };
@@ -112,11 +159,25 @@ function App() {
     };
   }, [screen]);
 
+  /*
+   * =========================================================
+   * ACTIVATION
+   * =========================================================
+   */
+
   if (
     screen === "activation"
   ) {
-    return <Activation />;
+    return (
+      <Activation />
+    );
   }
+
+  /*
+   * =========================================================
+   * PLAYLISTS
+   * =========================================================
+   */
 
   if (
     screen === "playlists"
@@ -154,6 +215,12 @@ function App() {
     );
   }
 
+  /*
+   * =========================================================
+   * PLAYER
+   * =========================================================
+   */
+
   if (
     screen === "player"
   ) {
@@ -178,14 +245,22 @@ function App() {
     );
   }
 
+  /*
+   * =========================================================
+   * LIVE TV
+   * =========================================================
+   */
+
   if (
     screen === "liveTV"
   ) {
     return (
       <LiveTV
-        onBack={() =>
-          setScreen("home")
-        }
+        onBack={() => {
+          setScreen(
+            "home"
+          );
+        }}
         onPlayChannel={(
           channelIndex
         ) => {
@@ -216,29 +291,51 @@ function App() {
     );
   }
 
+  /*
+   * =========================================================
+   * MOVIES
+   * =========================================================
+   */
+
   if (
     screen === "movies"
   ) {
     return (
       <Movies
-        onBack={() =>
-          setScreen("home")
-        }
+        onBack={() => {
+          setScreen(
+            "home"
+          );
+        }}
       />
     );
   }
+
+  /*
+   * =========================================================
+   * SERIES
+   * =========================================================
+   */
 
   if (
     screen === "series"
   ) {
     return (
       <Series
-        onBack={() =>
-          setScreen("home")
-        }
+        onBack={() => {
+          setScreen(
+            "home"
+          );
+        }}
       />
     );
   }
+
+  /*
+   * =========================================================
+   * HOME
+   * =========================================================
+   */
 
   return (
     <Home
@@ -258,17 +355,23 @@ function App() {
         );
       }}
 
-      onOpenLiveTV={() =>
-        setScreen("liveTV")
-      }
+      onOpenLiveTV={() => {
+        setScreen(
+          "liveTV"
+        );
+      }}
 
-      onOpenMovies={() =>
-        setScreen("movies")
-      }
+      onOpenMovies={() => {
+        setScreen(
+          "movies"
+        );
+      }}
 
-      onOpenSeries={() =>
-        setScreen("series")
-      }
+      onOpenSeries={() => {
+        setScreen(
+          "series"
+        );
+      }}
     />
   );
 }

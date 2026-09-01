@@ -32,7 +32,7 @@ import type {
   SeriesSeason,
 } from "../services/seriesService";
 
-import bonoLogoGold from "../assets/bono_logo_gold.png";
+import bonoLogoGold from "../assets/bono_logo_gold_no_player.png";
 
 import "./Series.css";
 
@@ -1751,9 +1751,7 @@ setSearchOpen(false);
   </div>
 
   <div className="series-title">
-    <span className="series-title-icon">
-      ▰
-    </span>
+    
 
     <h1>SERIES</h1>
   </div>

@@ -22,7 +22,7 @@ import type {
   MovieItem,
 } from "../services/moviesService";
 
-import bonoLogoGold from "../assets/bono_logo_gold.png";
+import bonoLogoGold from "../assets/bono_logo_gold_no_player.png";
 
 import "./Movies.css";
 
@@ -1102,7 +1102,7 @@ if (
         </div>
 
         <div className="movies-title">
-          <span className="movies-title-icon">▰</span>
+          
           <h1>MOVIES</h1>
         </div>
 

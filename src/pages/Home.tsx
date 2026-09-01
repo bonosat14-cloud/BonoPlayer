@@ -318,6 +318,11 @@ if (isEnter) {
           </span>
         </div>
 
+        <div className="home-title">
+          
+          <h1>HOME</h1>
+        </div>
+
         <div className="home-top-info">
           <div className="home-clock">
             {currentTime.toLocaleTimeString([], {

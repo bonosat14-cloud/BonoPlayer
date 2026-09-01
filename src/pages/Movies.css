@@ -43,21 +43,19 @@
    ========================================================= */
 
 .movies-header {
-  height: clamp(78px, 12vh, 96px);
-  min-height: clamp(78px, 12vh, 96px);
+  height: 68px;
+  min-height: 68px;
 
   display: grid;
   grid-template-columns:
-    clamp(170px, 18vw, 230px)
+    150px
     1fr
-    clamp(200px, 22vw, 260px);
+    auto;
 
   align-items: center;
   gap: clamp(12px, 2vw, 30px);
 
-  padding:
-    8px
-    clamp(24px, 3vw, 42px);
+  padding: 0 30px;
 
   box-sizing: border-box;
 
@@ -93,6 +91,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-self: start;
 }
 
 .movies-title-icon {
@@ -104,9 +103,10 @@
 .movies-title h1 {
   margin: 0;
   color: var(--bono-gold);
-  font-size: clamp(20px, 2vw, 28px);
-  font-weight: 850;
-  letter-spacing: 2.5px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 2.8px;
+  line-height: 1;
 }
 
 /* =========================================================
@@ -1194,12 +1194,12 @@
 @media (max-width: 1280px) {
   .movies-header {
     grid-template-columns:
-      165px
+      150px
       1fr
-      215px;
+      auto;
 
-    padding-left: 26px;
-    padding-right: 26px;
+    padding-left: 30px;
+    padding-right: 30px;
   }
 
   .movies-layout {
