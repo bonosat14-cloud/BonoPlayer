@@ -11,21 +11,21 @@
   background:
     radial-gradient(
       ellipse at 14% 18%,
-      rgba(34, 93, 220, 0.45) 0%,
-      rgba(34, 93, 220, 0.16) 28%,
+      rgba(212, 175, 55, 0.16) 0%,
+      rgba(212, 175, 55, 0.06) 28%,
       transparent 56%
     ),
     radial-gradient(
       ellipse at 86% 18%,
-      rgba(126, 42, 205, 0.44) 0%,
-      rgba(126, 42, 205, 0.14) 32%,
+      rgba(212, 175, 55, 0.10) 0%,
+      rgba(212, 175, 55, 0.04) 32%,
       transparent 62%
     ),
     linear-gradient(
       135deg,
-      #08122f 0%,
-      #0c1c4a 45%,
-      #17113c 100%
+      #050505 0%,
+      #090909 45%,
+      #020202 100%
     );
 }
 
@@ -63,7 +63,7 @@
   height: 360px;
   left: -120px;
   top: 120px;
-  background: rgba(40, 100, 255, 0.55);
+  background: rgba(212, 175, 55, 0.20);
 }
 
 .glow-right {
@@ -71,7 +71,7 @@
   height: 420px;
   right: -140px;
   top: 70px;
-  background: rgba(153, 48, 220, 0.5);
+  background: rgba(212, 175, 55, 0.14);
 }
 
 /* =========================================================
@@ -91,7 +91,7 @@
   position: relative;
   z-index: 3;
 
-  background: rgba(7, 14, 42, 0.42);
+  background: rgba(10, 10, 10, 0.82);
 
   border-bottom:
     1px solid rgba(255, 255, 255, 0.06);
@@ -128,13 +128,24 @@
   align-items: center;
 }
 
-.home-brand-name {
-  font-size: 31px;
-  font-weight: 900;
-  letter-spacing: 5px;
+.home-brand {
+  width: 150px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  overflow: hidden;
+}
 
-  text-shadow:
-    0 2px 18px rgba(0, 0, 0, 0.35);
+.home-brand-logo {
+  display: block;
+  width: 132px;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  filter: drop-shadow(0 0 7px rgba(212, 175, 55, 0.20));
 }
 
 .home-top-info {
@@ -200,6 +211,17 @@
     0 0 0 3px rgba(255, 255, 255, 0.08);
 
   transform: scale(1.05);
+}
+
+.home-top-button-focused {
+  outline: none;
+  color: #050505;
+  border-color: #f2d675;
+  background: linear-gradient(135deg, #f2d675 0%, #d4af37 55%, #9f7c1b 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 18px rgba(212, 175, 55, 0.30);
+  transform: scale(1.06);
 }
 
 /* =========================================================
@@ -320,8 +342,8 @@
   background:
     linear-gradient(
       135deg,
-      rgba(36, 74, 150, 0.45),
-      rgba(60, 30, 110, 0.35)
+      rgba(212, 175, 55, 0.16),
+      rgba(5, 5, 5, 0.78)
     );
 
   color: #ffffff;
@@ -348,9 +370,9 @@
   background:
     linear-gradient(
       to top,
-      rgba(7, 12, 32, 0.90) 0%,
-      rgba(7, 12, 32, 0.34) 48%,
-      rgba(7, 12, 32, 0.05) 100%
+      rgba(5, 5, 5, 0.92) 0%,
+      rgba(5, 5, 5, 0.38) 48%,
+      rgba(5, 5, 5, 0.06) 100%
     );
 }
 
@@ -365,8 +387,8 @@
   background:
     linear-gradient(
       135deg,
-      rgba(75, 126, 255, 0.62),
-      rgba(126, 52, 200, 0.52)
+      rgba(242, 214, 117, 0.95),
+      rgba(159, 124, 27, 0.92)
     );
 
   box-shadow:
@@ -394,7 +416,7 @@
   background:
     rgba(255, 255, 255, 0.92);
 
-  color: #172755;
+  color: #050505;
 
   font-size: 16px;
   font-weight: 900;
@@ -527,9 +549,9 @@
   background:
     linear-gradient(
       135deg,
-      #2455c8 0%,
-      #1740a5 52%,
-      #122c73 100%
+      #17130a 0%,
+      #100e08 52%,
+      #080706 100%
     );
 }
 
@@ -537,9 +559,9 @@
   background:
     linear-gradient(
       135deg,
-      #6e35c6 0%,
-      #5525a8 55%,
-      #31186f 100%
+      #1b1609 0%,
+      #110e07 55%,
+      #080706 100%
     );
 }
 
@@ -547,9 +569,9 @@
   background:
     linear-gradient(
       135deg,
-      #8f2fb2 0%,
-      #66238e 55%,
-      #3d155d 100%
+      #201a0b 0%,
+      #130f07 55%,
+      #080706 100%
     );
 }
 
@@ -558,11 +580,11 @@
 }
 
 .main-card-focused {
-  border-color: #ffffff;
+  border-color: #d4af37;
 
   box-shadow:
-    0 0 0 4px rgba(255, 255, 255, 0.10),
-    0 20px 48px rgba(0, 0, 0, 0.34);
+    0 0 0 3px rgba(212, 175, 55, 0.14),
+    0 20px 48px rgba(0, 0, 0, 0.42);
 
   transform: scale(1.035);
 
@@ -663,7 +685,7 @@
   border-radius: 12px;
 
   background:
-    rgba(7, 14, 42, 0.42);
+    rgba(10, 10, 10, 0.82);
 
   backdrop-filter: blur(12px);
 
@@ -848,8 +870,8 @@
     padding-top: 40px;
   }
 
-  .home-brand-name {
-    font-size: 34px;
+  .home-brand-logo {
+    width: 132px;
   }
 
   .recent-item {
@@ -913,8 +935,8 @@
     padding-right: 18px;
   }
 
-  .home-brand-name {
-    font-size: 24px;
+  .home-brand-logo {
+    width: 118px;
   }
 
   .home-clock {
@@ -995,9 +1017,8 @@
     padding: 0 42px;
   }
 
-  .home-brand-name {
-    font-size: 28px;
-    letter-spacing: 4px;
+  .home-brand-logo {
+    width: 132px;
   }
 
   .home-clock {

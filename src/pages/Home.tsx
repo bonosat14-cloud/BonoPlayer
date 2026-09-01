@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./Home.css";
 import { channels } from "../data/channels";
+import bonoLogoGold from "../assets/bono_logo_gold_no_player.png";
 
 type HomeProps = {
   onPlayChannel: (channelIndex: number) => void;
@@ -50,7 +51,7 @@ function Home({
   const homeRef = useRef<HTMLElement>(null);
 
   const [focusArea, setFocusArea] = useState<
-    "recent" | "main"
+    "settings" | "recent" | "main"
   >("main");
 
   const [focusedMain, setFocusedMain] = useState(0);
@@ -220,11 +221,19 @@ if (isRight) {
 if (isUp) {
   event.preventDefault();
 
-  if (
-    focusArea === "main" &&
-    recentlyWatched.length > 0
-  ) {
-    setFocusArea("recent");
+  if (focusArea === "main") {
+    if (recentlyWatched.length > 0) {
+      setFocusArea("recent");
+    } else {
+      setFocusArea("settings");
+    }
+
+    return;
+  }
+
+  if (focusArea === "recent") {
+    setFocusArea("settings");
+    return;
   }
 
   return;
@@ -236,6 +245,16 @@ if (isUp) {
 
 if (isDown) {
   event.preventDefault();
+
+  if (focusArea === "settings") {
+    if (recentlyWatched.length > 0) {
+      setFocusArea("recent");
+    } else {
+      setFocusArea("main");
+    }
+
+    return;
+  }
 
   if (focusArea === "recent") {
     setFocusArea("main");
@@ -250,6 +269,11 @@ if (isDown) {
 
 if (isEnter) {
   event.preventDefault();
+
+  if (focusArea === "settings") {
+    onOpenSettings?.();
+    return;
+  }
 
   if (focusArea === "recent") {
     const selectedRecent =
@@ -313,9 +337,11 @@ if (isEnter) {
 
       <header className="home-header">
         <div className="home-brand">
-          <span className="home-brand-name">
-            BONO
-          </span>
+          <img
+            className="home-brand-logo"
+            src={bonoLogoGold}
+            alt="BONO"
+          />
         </div>
 
         <div className="home-title">
@@ -332,17 +358,14 @@ if (isEnter) {
           </div>
 
           <button
-            className="home-top-button"
-            type="button"
-            aria-label="Search"
-          >
-            ⌕
-          </button>
-
-          <button
-            className="home-top-button"
+            className={`home-top-button ${
+              focusArea === "settings"
+                ? "home-top-button-focused"
+                : ""
+            }`}
             type="button"
             aria-label="Settings"
+            onMouseEnter={() => setFocusArea("settings")}
             onClick={() => onOpenSettings?.()}
           >
             ⚙

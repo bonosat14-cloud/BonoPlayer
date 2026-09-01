@@ -56,6 +56,8 @@ type FocusArea =
   | "categories"
   | "channels"
   | "search";
+  
+
 
 type LiveChannel =
   ParsedChannel;
@@ -1516,6 +1518,7 @@ const openSearch =
   return;
 }
 
+
         if (
           focusArea ===
           "search"
@@ -1532,14 +1535,16 @@ const openSearch =
        * RIGHT
        */
 
-      if (
-        right
-      ) {
-        event.preventDefault();
+    if (
+  right
+) {
+  event.preventDefault();
 
-        clearFavoriteLongPressTimer();
-        return;
-      }
+  clearFavoriteLongPressTimer();
+  return;
+}
+
+ 
 
       /*
        * UP
@@ -1900,12 +1905,7 @@ useEffect(() => {
   </span>
 </button>
 
-    <button
-      type="button"
-      aria-label="Settings"
-    >
-      ⚙
-    </button>
+    
   </div>
 </header>
 
