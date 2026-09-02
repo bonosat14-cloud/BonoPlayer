@@ -14,6 +14,7 @@ import LiveTV from "./pages/LiveTV";
 import Player from "./pages/player";
 import Movies from "./pages/Movies";
 import Series from "./pages/Series";
+import Settings from "./pages/Settings";
 
 import {
   exitNativeApp,
@@ -29,6 +30,7 @@ type Screen =
   | "liveTV"
   | "movies"
   | "series"
+  | "settings"
   | "player";
 
 function App() {
@@ -101,6 +103,20 @@ function App() {
 
       if (
         screen === "liveTV"
+      ) {
+        setScreen(
+          "home"
+        );
+
+        return;
+      }
+
+      /*
+       * SETTINGS -> HOME
+       */
+
+      if (
+        screen === "settings"
       ) {
         setScreen(
           "home"
@@ -333,6 +349,26 @@ function App() {
 
   /*
    * =========================================================
+   * SETTINGS
+   * =========================================================
+   */
+
+  if (
+    screen === "settings"
+  ) {
+    return (
+      <Settings
+        onBack={() => {
+          setScreen(
+            "home"
+          );
+        }}
+      />
+    );
+  }
+
+  /*
+   * =========================================================
    * HOME
    * =========================================================
    */
@@ -370,6 +406,12 @@ function App() {
       onOpenSeries={() => {
         setScreen(
           "series"
+        );
+      }}
+
+      onOpenSettings={() => {
+        setScreen(
+          "settings"
         );
       }}
     />
